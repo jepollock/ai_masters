@@ -1,0 +1,67 @@
+\documentclass{article}
+\usepackage{amsmath}  % Basic math symbols and environments
+\usepackage{amssymb}  % Extended symbol collection
+\usepackage{mathtools} % Fixes and additions to amsmath
+\begin{document}
+\title{Prosecutor's Fallacy Notes}
+
+I am going to work through the Prosecutor's Fallacy and combine it with Baye's Theorem to see if we can determine where it goes wrong.
+
+\paragraph{Prosecutor's Fallacy}
+A crime-scene DNA sample is compared against a database of
+20,000 men. A match is found, that man is accused and at his trial, it is testified that
+the probability that two DNA profiles match by chance is only 1 in 10,000.
+
+First let's derive Baye's Theorem from Conditional Probability and the Chain Rule.
+
+\begin{align}
+P(x,y) = P(x|y)P(y)\\
+       = P(y|x)P(x)\\ \\
+P(x|y)P(y) = P(y|x)P(x)\\
+\therefore 
+P(x|y) = \frac{P(y|x)P(x)}{P(y)}
+\end{align}
+
+We can use that and then reason about a Hypothesis given a piece of Data.
+
+\begin{align}
+	P(H|D) = \frac{P(D|H)P(H)}{P(D)}
+\end{align}
+
+Now, let's look at the Prosecutor's Fallacy. This problem gives us the following:
+
+\begin{itemize}
+	\item a possibly Guilty party
+	\item a Suspect
+	\item a Match on a DNA sample
+\end{itemize}
+
+
+Our Bayes test is therefore:
+
+\begin{align}
+	P(G|m,s) = \frac{P(m,s|G)P(G)}{P(m,s)}
+\end{align}
+
+We are also given:
+\begin{align}
+	P(m) = 1/1000 \\
+	P(G) = 1/population
+\end{align}
+
+Notice that Bayes requires $P(m,s)$, but we only have $P(m)$. Do we need to include that they are a suspect? Is the $P(m)$ large enough to be dispositive on it's own?
+
+\begin{align}
+	P(m,s) = P(s|m)P(m)
+\end{align}
+
+We could apply Baye's recursively, but it won't get us any further, we can't avoid $P(s|m)$ or $P(m|s)$.
+
+Any large enough city will have multiple matches in the population. This means we can't ignore P(s). There will even be multiple matches returned from the database. If we assume a city of 100,000 people, there are likely to be 10 matches in that population.
+
+We know DNA is arranged in a hierarchy, with familial relationships appearing "close" when measured by edit distance. This means that collisions are likely to happen inside of groups with familial relationships - not necessarily just immediate family. Those 10 matches in a 100k person city look like a family group.
+
+Since the suspect pool is also likely to be people in the same family, this increases the risk of collision.
+
+Either a DNA test which is dispositive on it's own should be used, or more suspects tested, particularly, family members.
+\end{document}
