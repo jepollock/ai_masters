@@ -5,6 +5,7 @@ Doc used to remind me what I have installed, just in case I need to do it again.
 I'd have a better list, but it seems the OSX terminal history was pruned.
 
 - Anaconda
+- KNIME
 - MacPorts
 - XQuartz
 - JetBrains Complete - Free for educational use!
