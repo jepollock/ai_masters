@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ca.pollock.kopia.sync</string>
+
+    <!-- Specifies the program and its arguments. The first argument is the script itself. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/jepollock/dev/ai_masters/config/kopia_sync</string>
+    </array>
+
+    <!-- Run the job every 60 seconds (optional, specify your desired schedule) -->
+    <key>StartInterval</key>
+    <integer>60</integer>
+
+    <!-- Optional: Redirect output for debugging purposes -->
+    <key>StandardOutPath</key>
+    <string>/tmp/kopia_sync.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/kopia_sync.log</string>
+    <!-- Optional: Keep the script alive or restart it if it crashes -->
+    <!-- <key>KeepAlive</key> -->
+    <!-- <true/> -->
+</dict>
+</plist>

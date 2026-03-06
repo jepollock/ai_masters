@@ -1,5 +1,11 @@
 #!/bin/bash
+export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
 
-if ping -c 1 homer &> /dev/null; then
+echo "Starting kopia_sync"
+echo "Running as $USER"
+if /sbin/ping -c 1 homer >/dev/null 2>&1; then
+  echo "Homer found,  syncing"
   /Applications/KopiaUI.app/Contents/Resources/server/kopia repository sync-to sftp --path=/Pending/backup/jason.m5pro --host=homer --username=jepollock --keyfile=/Users/jepollock/.ssh/id_ed25519_github --known-hosts=/Users/jepollock/.ssh/known_hosts --delete
+else
+  echo "Homer not found, exiting"
 fi
