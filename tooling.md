@@ -46,3 +46,9 @@ Need to remap Option key, otherwise copy is hard to get to.
 (setq x-alt-keysym 'meta)
 
 ```
+
+## Backup
+
+Kordia is used for backups. There is a local snapshot grabbed every 15 minutes, then that is pushed to homer (fileserver) every hour - when available. Remote backup is provided for important data using git to github.
+
+

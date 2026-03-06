@@ -1,0 +1,5 @@
+#!/bin/bash
+
+if ping -c 1 homer &> /dev/null; then
+  /Applications/KopiaUI.app/Contents/Resources/server/kopia repository sync-to sftp --path=/Pending/backup/jason.m5pro --host=homer --username=jepollock --keyfile=/Users/jepollock/.ssh/id_ed25519_github --known-hosts=/Users/jepollock/.ssh/known_hosts --delete
+fi
