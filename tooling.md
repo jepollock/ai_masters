@@ -26,3 +26,22 @@ sudo port install texstudio
 sudo port load dbus
 sudo port install hunspell-en_AU_large hunspell-en_CA_large hunspell-en_GB_large hunspell-en_US_large
 ```
+
+
+## Emacs changes
+
+Need to remap Option key, otherwise copy is hard to get to.
+
+- Change Quartz to map Option to Alt.
+- Change Terminal to map Option to Alt.
+- Put the following in .emacs/init.el to map the keys to Meta.
+
+```
+;;; Mac keyboard - native version
+(setq mac-option-modifier 'meta)
+(setq mac-right-option-modifier nil)
+
+;;; Mac keyboard - x11
+(setq x-alt-keysym 'meta)
+
+```
