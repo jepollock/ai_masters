@@ -1,2 +1,2 @@
 # Run 13 minutes after the hour.
-13 * * * * /Users/jepollock/dev/ai_masters/config/kopia_sync
+* * * * * /Users/jepollock/dev/ai_masters/config/kopia_sync >/tmp/kopia_sync.log 2>&1

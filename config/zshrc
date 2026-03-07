@@ -12,6 +12,7 @@ setopt HIST_EXPIRE_DUPS_FIRST
 
 # Kopia alias - keep it out of the path.
 alias kopia=/Applications/KopiaUI.app/Contents/Resources/server/kopia
+alias texstudio=/Applications/texstudio-4.9.2-osx-m1.app/Contents/MacOS/texstudio
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
