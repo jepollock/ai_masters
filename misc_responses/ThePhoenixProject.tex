@@ -1,0 +1,116 @@
+\documentclass{article}
+\usepackage{amsmath}  % Basic math symbols and environments
+\usepackage{amssymb}  % Extended symbol collection
+\usepackage{mathtools} % Fixes and additions to amsmath
+\usepackage{url} % allow URLs.
+\usepackage{hyperref} % make urls clickable
+\begin{document}
+	\title{The Phoenix Project Notes}
+	
+In the SWEN438 class, they're reading "The Phoenix Project". It uses the framing of a failing business to discuss how a IT organisation can start delivering value to the business.
+
+It is a \underline{terrible} book.
+
+Soon after I graduated, I interviewed at an organisation like the one described. I refused to work there. All the way along I asked why people would willingly work for that company. The authors understood this because they added in a whole digression discussing why this senior manager could \underline{only} work for this one company. There were no other options.
+
+It attempts to get describe DevOps without understanding DevOps.
+
+Unforgiveably, it attempts to use math and gets the math wrong.
+
+At one point, it states:
+
+\begin{quote}
+"The wait time for a given resource is the percentage that
+resource is busy, divided by the percentage that resource is idle."
+\end{quote}
+
+Which "isn't even wrong". Let's see why:
+
+\begin{align}
+wait\ time = (busy\ percentage)/(idle\ percentage) \\
+= (busy_t/total_t)/(idle_t/total_t)\\
+= (busy_t/total_t) * (total_t/idle_t)\\
+= busy_t/idle_t
+\end{align}
+
+In that equation, "wait time" has no units. It isn't "wait time", it can't be, there aren't any units attached to it. Constraints might appear by sorting by the value, but that's not what it's described as.
+
+Researching the equation, it's a portion of the \href{https://en.wikipedia.org/wiki/Kingman%27s_formula}{Kingman Equation}, which does result in something with a unit on it. This is from queuing theory and it why SREs like to keep machine utilisation around 50\%. It also appears to be an unsolved problem for anything other than one worker doing the task.
+
+DevOps boils down to two things, everything else flows from that.
+
+\begin{enumerate}
+	\item If it hurts, DO IT MORE OFTEN.
+	\item The team that breaks it gets to know that it's broken (and leads the recovery)
+\end{enumerate}
+
+It gets you the "Three Ways". The types of work are another problem. It doesn't link the work back to the stakeholders, so the importance of the work is lost. For example, by dumping all outages in one bucket, the outage severity is lost, requiring them all to be treated the same. A system in a limited beta rollout that is crashing is very different to an accounting system in the middle of closing out the quarter - it can be hard to tell which is more important. For example, the CEO might be demoing the beta in an hour.
+
+From the two core principles we get:
+
+\begin{enumerate}
+	\item Push early, push frequently. (pushing hurts)
+	\item Incremental projects. (planning hurts)
+	\item Change management (someone broke the push)
+	\item CI/CD (someone broke the build)
+	\item Continual failover to backup systems (someone broke production)
+	\item Dev team carries pagers (someone broke production)
+	\item Continual improvement (I hate being paged)
+	\item Only forwards, never backwards (cleanup hurts)
+	\item Measurement (production is broken)
+\end{enumerate}
+
+All of it from those \underline{two} things. 
+
+Dev team doesn't like being woken up at 2AM? Fix the code, fix the alert, add measurement to detect problems earlier.
+
+The business doesn't like waiting? Split up the projects and sort by business value (leads to "agile" processes).
+
+Teams have individual quality needs because they need to go after different markets. Since they carry the pager, they decide what the tradeoffs are, not the ops team.
+
+The two base concepts aren't just pulled from a hat.
+
+\section*{If it hurts, DO IT MORE OFTEN}
+
+This is from pipelining. Work that flows upstream can cause pipeline stalls if it needs to be done before other work can continue. If the pipeline is deep, this gets extremely expensive.
+
+Pipeline stalls are lost time while everyone stands around twiddling their thumbs.
+
+For example:
+
+Consider a release pipeline, where there are six months between a developer writing code and it being available in production.
+
+The first problem is that there with a turnover rate of 15\% (typical for eng), there is a 8\% chance the developer WILL NO LONGER BE THERE when the code is launched.
+
+Next, we have the likelihood of the release being broken. Developers produce bugs at a pretty constant rate. It's bugs/days worked (or lines written). As the number of days of work in a release goes up, the chance of a bug is 100\%, even to the point of there being multiple bugs.
+
+The cost of a pipeline stall is the value of all the work in that release. If the release is bigger, the cost is larger.
+
+
+\begin{equation}
+\begin{split}	
+P(badRelease) & = P(badChange) * DaysPerRelease * NumDevelopers\\
+Cost(badRelease) & = P(badRelease) * DaysPerRelease * NumDevelopers * MTTR\\
+& = P(badChange) * DaysPerRelease * NumDevelopers * DaysPerRelease * NumDevelopers * MTTR \\
+& = P(badChange) * DaysPerRelease^2 * NumDevelopers^2 * MTTR\\
+\end{split}
+\end{equation}
+
+The cost of a bad release related to the square of the days in the release and the number of developers.
+
+Reducing the size of the release by a factor of 10 (one 10th the size) will reduce our the cost of a bad release by a factor of 100, while reducing the error rate by a factor of 10 (one 10th the number of bugs) only reduces the costs by a factor of 10.
+
+Since the number of bad changes is largely fixed, to minimize the cost, we need to minimize the impact - the size of the release.
+
+This equation also shows us that releases should be localised to the team.
+
+\section*{You break it, you own it}
+
+For continual improvement, we need feedback. Teams need to know the impacts of their decisions. If they are responsible for the impact, then they can make true tradeoffs, and local decisions.
+
+For example, there are two teams. Team A works in a regulated environment, e.g. x-ray machines. They have a very specific quality level to meet. Team B works in social networking advertising. They don't have the same life-or-death requirements. By having a single operations team managing both, Team A will drive Team B's costs.
+
+\section*{Conclusion}
+This is the way.
+
+\end{document}

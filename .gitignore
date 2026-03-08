@@ -2,6 +2,7 @@
 *.aux
 *.pdf
 *.gz
+*.out
 
 # Emacs temporary and backup files
 *~
