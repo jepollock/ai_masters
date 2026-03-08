@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage{amsmath}  % Basic math symbols and environments
+\usepackage{amssymb}  % Extended symbol collection
+\usepackage{mathtools} % Fixes and additions to amsmath
+\begin{document}
+\title{AIML427 - Big Data Assignment \#1}
+\section{Classification, Regression and Clustering}
+
+These answers will deal with a single dataset.
+
+The data is the set of browser analytics events and backing system RPCs. It has the format:
+
+user\_events = \{ user, session\_stream=\{session, event\_stream\} \}
+
+In addition to the event stream, we also have one additional piece of data - deemed fraudster. Fraudsters extract money from the company through credit card fraud.
+
+Where event\_stream is the set of RPCs and clicks performed by the user.
+
+To deal with seasonal variations in data, we need to store and process at least a full year's worth of data.
+
+Every user will generate 100 clicks, and each initial front-end call will generate 100 back end calls. A typical session will involve 100 front end RPCs, and users will interact with the system daily.
+
+The system has 10m users.
+
+Therefore the \textbf{volume} of data involved is roughly:
+
+\begin{align*}
+	let\ S_d &= \text{sessions per day = 1}\\
+	let\ C_s &= \text{clicks per session = 100}\\
+	let\ F_s &= \text{front-end RPCs per session = 100}\\
+	let\ B_f &= \text{back-end RPCs per front-end RPC = 100}\\
+	let\ E_s &= \text{events per session}\\
+	let\ B_e &= \text{bytes per event = 100}\\
+	let\ B_s &= \text{bytes per session = 1000}\\
+	let\ T_b &= \text{total data size}\\
+	let\ N_d &= \text{total number of days stored}\\
+	let\ T_e &= \text{total events stored analyzed per user}\\
+	E_s &= C_s + F_s + F_s * B_f\\
+	T_e &= N_d * S_d * E_s\\
+	&= N_d * S_d * (C_s + F_s + F_s * B_f)\\
+	&= 365 * 1 * (100 + 100 + 100*100)\\
+	&= 3,723,000\\
+	T_b &= S_d * N_d * B_s + T_e * B_e\\
+	&= 1 * 365 * 1000 + 3,723,000 * 100\\
+	&= 372,665,000 bytes\\
+	&= 373 \text{ megabytes per user per year}\\
+	&= 3.73 \text{ petabytes per year}\\
+\end{align*}
+
+The \textbf{velocity} is also large. The system will need to deal with 946Mb/s.
+
+\textbf{Value} will be explored in the individual models constructed from this dataset.
+
+\section*{big data classification example}
+
+With our large data store of user events and "deemed fraudster", we would like to train a model to determine if a user may be a fraudster.
+
+Fraudsters abuse the system and steal from the company, either through free service, or refunds.
+
+The dataset includes an event, "deemed fraudster". We take the subset of events up to the fraudulent determination, and train a model to map an event stream to "deemed fraudster".
+
+Since the dataset is labelled, this is a classification problem.
+
+There is significant \textbf{value} in this determination. If the company cannot keep credit card fraud under control, the card processors will increase their merchant fees, or even disconnect the company from the payment networks.
+
+As fraudsters change behaviors rapidly, and the events involved in a session will also change over time, the model will need to be retrained frequently, allowing it to adapt to new attacks.
+
+\section*{big data regression example}
+
+
+
+\section*{big data clustering example}
+	
+\end{document}
