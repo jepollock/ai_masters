@@ -33,7 +33,7 @@ wait\ time = (busy\ percentage)/(idle\ percentage) \\
 = busy_t/idle_t
 \end{align}
 
-In that equation, "wait time" has no units. It isn't "wait time", it can't be, there aren't any units attached to it. Constraints might appear by sorting by the value, but that's not what it's described as.
+In that equation, "wait time" has no units. It isn't "wait time", it can't be, there aren't any units attached to it. Constraints might appear by sorting, but that's not what it's described as.
 
 Researching the equation, it's a portion of the \href{https://en.wikipedia.org/wiki/Kingman%27s_formula}{Kingman Equation}, which does result in something with a unit on it. This is from queuing theory and it why SREs like to keep machine utilisation around 50\%. It also appears to be an unsolved problem for anything other than one worker doing the task.
 
@@ -44,7 +44,9 @@ DevOps boils down to two things, everything else flows from that.
 	\item The team that breaks it gets to know that it's broken (and leads the recovery)
 \end{enumerate}
 
-It gets you the "Three Ways". The types of work are another problem. It doesn't link the work back to the stakeholders, so the importance of the work is lost. For example, by dumping all outages in one bucket, the outage severity is lost, requiring them all to be treated the same. A system in a limited beta rollout that is crashing is very different to an accounting system in the middle of closing out the quarter - it can be hard to tell which is more important. For example, the CEO might be demoing the beta in an hour.
+That alone will drive the behaviors in the "Three Ways". 
+
+The "types of work" are another problem. It doesn't link the work back to the stakeholders, so the importance of the work is lost. For example, by dumping all outages in one bucket, the outage severity is lost, requiring them all to be treated the same. A system in a limited beta rollout that is crashing is very different to an accounting system in the middle of closing out the quarter - it can be hard to tell which is more important. For example, the CEO might be demoing the beta in an hour.
 
 From the two core principles we get:
 
@@ -66,15 +68,13 @@ Dev team doesn't like being woken up at 2AM? Fix the code, fix the alert, add me
 
 The business doesn't like waiting? Split up the projects and sort by business value (leads to "agile" processes).
 
-Teams have individual quality needs because they need to go after different markets. Since they carry the pager, they decide what the tradeoffs are, not the ops team.
+Teams have individual quality needs because they need to go after different markets? Since they carry the pager, they decide what the tradeoffs are, not the ops team.
 
 The two base concepts aren't just pulled from a hat.
 
 \section*{If it hurts, DO IT MORE OFTEN}
 
-This is from pipelining. Work that flows upstream can cause pipeline stalls if it needs to be done before other work can continue. If the pipeline is deep, this gets extremely expensive.
-
-Pipeline stalls are lost time while everyone stands around twiddling their thumbs.
+This is from pipelining. Work that flows upstream will cause pipeline stalls. If the pipeline is deep, this gets extremely expensive as everyone stands around waiting.
 
 For example:
 
@@ -86,7 +86,6 @@ Next, we have the likelihood of the release being broken. Developers produce bug
 
 The cost of a pipeline stall is the value of all the work in that release. If the release is bigger, the cost is larger.
 
-
 \begin{equation}
 \begin{split}	
 P(badRelease) & = P(badChange) * DaysPerRelease * NumDevelopers\\
@@ -96,9 +95,9 @@ Cost(badRelease) & = P(badRelease) * DaysPerRelease * NumDevelopers * MTTR\\
 \end{split}
 \end{equation}
 
-The cost of a bad release related to the square of the days in the release and the number of developers.
+The cost of a bad release is related to the square of both the days in the release and the number of developers.
 
-Reducing the size of the release by a factor of 10 (one 10th the size) will reduce our the cost of a bad release by a factor of 100, while reducing the error rate by a factor of 10 (one 10th the number of bugs) only reduces the costs by a factor of 10.
+Reducing the size of the release by a factor of 10 (one 10th the size) will reduce our the cost of a bad release by a factor of 100. Reducing the error rate by a factor of 10 (one 10th the number of bugs) only reduces the costs by a factor of 10.
 
 Since the number of bad changes is largely fixed, to minimize the cost, we need to minimize the impact - the size of the release.
 
