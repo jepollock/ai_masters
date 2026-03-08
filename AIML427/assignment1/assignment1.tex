@@ -1,74 +1,67 @@
-\documentclass{article}
+\documentclass[11pt]{article}
 \usepackage{amsmath}  % Basic math symbols and environments
 \usepackage{amssymb}  % Extended symbol collection
 \usepackage{mathtools} % Fixes and additions to amsmath
+%\usepackage{enumitem}
 \begin{document}
 \title{AIML427 - Big Data Assignment \#1}
 \section{Classification, Regression and Clustering}
 
-These answers will deal with a single dataset.
-
-The data is the set of browser analytics events and backing system RPCs. It has the format:
-
-user\_events = \{ user, session\_stream=\{session, event\_stream\} \}
-
-In addition to the event stream, we also have one additional piece of data - deemed fraudster. Fraudsters extract money from the company through credit card fraud.
-
-Where event\_stream is the set of RPCs and clicks performed by the user.
-
-To deal with seasonal variations in data, we need to store and process at least a full year's worth of data.
-
-Every user will generate 100 clicks, and each initial front-end call will generate 100 back end calls. A typical session will involve 100 front end RPCs, and users will interact with the system daily.
-
-The system has 10m users.
+These answers will deal with a single dataset, browser analytics events with backing system RPCs. The business has 10m users. Each session will generate 100 clicks, and 100 front end RPCs. Each front-end RPC generates 100 back end calls. Users will interact with the system daily. To deal with seasonal variations in data, we need to store and process at least a full year's worth of data. 
 
 Therefore the \textbf{volume} of data involved is roughly:
 
+\begin{center}
+	\begin{tabular}{|c c | c c|}
+	\hline
+	    \textbf{variable} & \textbf{description} & \textbf{variable} & \textbf{description}\\
+	    \(S_d\) & sessions per day = 1 & \(C_s\) & clicks per session = 100\\
+	    \(F_s\) & front-end RPCs per session = 100 & \(B_f\) & back-end RPCs per F\_s = 100\\
+	    \(E_s\) & events per session & \(B_e\) & bytes per event = 100\\
+	    \(B_s\) & bytes per session = 1000 & \(T_b\) & total data size\\
+	    \(N_d\) & total number of days stored & \(T_e\) & total events stored analyzed per user\\
+	\hline
+	\end{tabular}
+\end{center}
+
 \begin{align*}
-	let\ S_d &= \text{sessions per day = 1}\\
-	let\ C_s &= \text{clicks per session = 100}\\
-	let\ F_s &= \text{front-end RPCs per session = 100}\\
-	let\ B_f &= \text{back-end RPCs per front-end RPC = 100}\\
-	let\ E_s &= \text{events per session}\\
-	let\ B_e &= \text{bytes per event = 100}\\
-	let\ B_s &= \text{bytes per session = 1000}\\
-	let\ T_b &= \text{total data size}\\
-	let\ N_d &= \text{total number of days stored}\\
-	let\ T_e &= \text{total events stored analyzed per user}\\
 	E_s &= C_s + F_s + F_s * B_f\\
 	T_e &= N_d * S_d * E_s\\
 	&= N_d * S_d * (C_s + F_s + F_s * B_f)\\
-	&= 365 * 1 * (100 + 100 + 100*100)\\
 	&= 3,723,000\\
-	T_b &= S_d * N_d * B_s + T_e * B_e\\
-	&= 1 * 365 * 1000 + 3,723,000 * 100\\
-	&= 372,665,000 bytes\\
-	&= 373 \text{ megabytes per user per year}\\
+	T_b &= (S_d * N_d * B_s + T_e * B_e) * U\\
 	&= 3.73 \text{ petabytes per year}\\
 \end{align*}
 
-The \textbf{velocity} is also large. The system will need to deal with 946Mb/s.
-
-\textbf{Value} will be explored in the individual models constructed from this dataset.
+The \textbf{velocity} is also large. The system will need to ingest 946Mb/s.
 
 \section*{big data classification example}
 
-With our large data store of user events and "deemed fraudster", we would like to train a model to determine if a user may be a fraudster.
+ A model can be trained to predict if a user may be a fraudster, using the user event stream, including a "deemed fraudster" event. The "deemed fraudster" event would be removed from the stream and used as the label for training.
 
-Fraudsters abuse the system and steal from the company, either through free service, or refunds.
+Since the dataset is labelled, this is a \textbf{classification} problem.
 
-The dataset includes an event, "deemed fraudster". We take the subset of events up to the fraudulent determination, and train a model to map an event stream to "deemed fraudster".
-
-Since the dataset is labelled, this is a classification problem.
-
-There is significant \textbf{value} in this determination. If the company cannot keep credit card fraud under control, the card processors will increase their merchant fees, or even disconnect the company from the payment networks.
+There is significant \textbf{value} in this prediction. If the company cannot keep payment fraud under control, processors will increase merchant fees, or even disconnect the company from payment networks.
 
 As fraudsters change behaviors rapidly, and the events involved in a session will also change over time, the model will need to be retrained frequently, allowing it to adapt to new attacks.
 
+If the model is retrained every month, and the data should be no more than 2 weeks old at launch, the system needs to process \(\frac{3.73PB}{2\ weeks} = 25Gbps\).
+
 \section*{big data regression example}
 
+In the same dataset, there is a "purchase" event, containing the cart value. We can take those events and create a new label with the total value spent by that customer over the past year.
 
+The dataset is labelled, but the label is a continuous value. That indicates a \textbf{regression} problem.
+
+Having a model able to predict a customer's future value allows experimentation, with the experimentor attempting to increase the customer's spend from a baseline prediction, with both control and treatment arms. Offering deals to customers who already likely to buy is a poor use of marketing money. The chance to better target spending is of significant \textbf{value} to the business.
 
 \section*{big data clustering example}
-	
+
+This problem is anomaly detection. The model should detect significant differences in sessions - too short, too long, or containing strange interactions.
+
+There aren't any labels - this is a clustering problem. Every completed session's event stream will be evaluated against the model to determine if it is an anomaly, where "anomaly" is defined as "being too far away from any of the clusters".
+
+The alerting system would count sessions reported anomalous by the model, and if they exceed a certain rate (or ratio), trigger an alert. The business \textbf{value} is in reducing revenue loss and escalations.
+
+In Anomaly detection, we again want short training intervals, with a lag in the training data window to avoid boiling the frog as bad features are incrementally rolled out. This would still require training every month, requiring \(25Gbps\) of processing.
 \end{document}
