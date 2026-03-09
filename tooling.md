@@ -26,6 +26,10 @@ sudo port install texlive-basic
 sudo port install texstudio
 sudo port load dbus
 sudo port install hunspell-en_AU_large hunspell-en_CA_large hunspell-en_GB_large hunspell-en_US_large
+sudo port install texlive-latex-extra
+sudo port install texlive-latex-recommended texlive-math-science
+sudo port install texlive-bibtex-extra
+sudo port install biblatex-biber
 ```
 
 
