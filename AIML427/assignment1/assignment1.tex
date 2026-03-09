@@ -1,15 +1,23 @@
 \documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+\addbibresource{references.bib}
 \usepackage{amsmath}  % Basic math symbols and environments
 \usepackage{amssymb}  % Extended symbol collection
 \usepackage{mathtools} % Fixes and additions to amsmath
-%\usepackage{enumitem}
+
 \begin{document}
 \title{AIML427 - Big Data Assignment \#1}
 \section{Classification, Regression and Clustering}
 
-These answers will deal with a single dataset, browser analytics events with backing system RPCs. The business has 10m users. Each session will generate 100 clicks, and 100 front end RPCs. Each front-end RPC generates 100 back end calls. Users will interact with the system daily. To deal with seasonal variations in data, we need to store and process at least a full year's worth of data. 
+These answers will deal with a single dataset, browser analytics events with backing system RPCs. The business has 10m users. ARPU is currently \(USD\ \$160/user/year\) \cite{arpu}. Total revenue is USD \$1.6billion. Each session will generate 100 clicks, and 100 front end RPCs. Each front-end RPC generates 100 back end calls. Users will interact with the system daily. To deal with seasonal variations in data, we need to store and process at least a full year's worth of data. 
 
-Therefore the \textbf{volume} of data involved is roughly:
+Therefore the \textbf{volume} and \textbf{velocity} of data involved is roughly:
 
 \begin{center}
 	\begin{tabular}{|c c | c c|}
@@ -28,12 +36,10 @@ Therefore the \textbf{volume} of data involved is roughly:
 	E_s &= C_s + F_s + F_s * B_f\\
 	T_e &= N_d * S_d * E_s\\
 	&= N_d * S_d * (C_s + F_s + F_s * B_f)\\
-	&= 3,723,000\\
 	T_b &= (S_d * N_d * B_s + T_e * B_e) * U\\
 	&= 3.73 \text{ petabytes per year}\\
+	&= 946Mb/s.
 \end{align*}
-
-The \textbf{velocity} is also large. The system will need to ingest 946Mb/s.
 
 \section*{big data classification example}
 
@@ -41,27 +47,26 @@ The \textbf{velocity} is also large. The system will need to ingest 946Mb/s.
 
 Since the dataset is labelled, this is a \textbf{classification} problem.
 
-There is significant \textbf{value} in this prediction. If the company cannot keep payment fraud under control, processors will increase merchant fees, or even disconnect the company from payment networks.
+If the company cannot keep payment fraud under control, processors will increase merchant fees, or even disconnect the company from payment networks. The fraud loss ratio is currently 1.8\% of revenue \cite{ccfraud}, providing a \textbf{value} of USD \$32.4million.
 
-As fraudsters change behaviors rapidly, and the events involved in a session will also change over time, the model will need to be retrained frequently, allowing it to adapt to new attacks.
-
-If the model is retrained every month, and the data should be no more than 2 weeks old at launch, the system needs to process \(\frac{3.73PB}{2\ weeks} = 25Gbps\).
+Both fraudsters and the system will change. The model will need to be retrained frequently. If the model is retrained every month, and the data should be no more than 2 weeks old at launch, the system needs to process \(\frac{3.73PB}{2\ weeks} = 25Gbps\).
 
 \section*{big data regression example}
 
-In the same dataset, there is a "purchase" event, containing the cart value. We can take those events and create a new label with the total value spent by that customer over the past year.
+The dataset includes a "purchase" event, with the cart value. We can label the user with the total spent over the past year. The goal is to predict a customer's total spend from the event stream. Since the dataset is labelled with a continuous value, it is a \textbf{regression} problem.
 
-The dataset is labelled, but the label is a continuous value. That indicates a \textbf{regression} problem.
-
-Having a model able to predict a customer's future value allows experimentation, with the experimentor attempting to increase the customer's spend from a baseline prediction, with both control and treatment arms. Offering deals to customers who already likely to buy is a poor use of marketing money. The chance to better target spending is of significant \textbf{value} to the business.
+The ability to better target spending is of significant \textbf{value} to the business. A 1\% improvement in transaction completion is worth USD \$18million
 
 \section*{big data clustering example}
 
-This problem is anomaly detection. The model should detect significant differences in sessions - too short, too long, or containing strange interactions.
+The model should detect significant differences in sessions - too short, too long, or containing strange interactions.
 
-There aren't any labels - this is a clustering problem. Every completed session's event stream will be evaluated against the model to determine if it is an anomaly, where "anomaly" is defined as "being too far away from any of the clusters".
+There aren't any labels - this is a \textbf{clustering problem}. Every completed session's event stream will be evaluated against the model to determine if it is an anomaly, where "anomaly" is defined as "being too far away from any of the clusters".
 
-The alerting system would count sessions reported anomalous by the model, and if they exceed a certain rate (or ratio), trigger an alert. The business \textbf{value} is in reducing revenue loss and escalations.
+The alerting system would count sessions reported anomalous by the model, and if they exceed a certain rate (or ratio), trigger an alert. The business \textbf{value} is in reducing revenue loss and escalations. Going from 3 9's to 5 9's of downtime would be worth USD \$2million in immediate revenue.
 
 In Anomaly detection, we again want short training intervals, with a lag in the training data window to avoid boiling the frog as bad features are incrementally rolled out. This would still require training every month, requiring \(25Gbps\) of processing.
+
+\printbibliography
+
 \end{document}
