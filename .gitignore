@@ -4,6 +4,12 @@
 *.gz
 *.out
 
+# OSX files
+__MACOSX
+
+# intellij settings files
+.idea
+
 # latex files
 *.acn
 *.acr
