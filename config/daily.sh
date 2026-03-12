@@ -1,6 +1,6 @@
 #!/bin/bash
 
-kopia_sync
+./kopia_sync
 sudo port -d selfupdate
 sudo port upgrade outdated
 

@@ -32,6 +32,11 @@ sudo port install texlive-bibtex-extra
 sudo port install biblatex-biber
 ```
 
+## Python packages
+
+```
+
+```
 
 ## Emacs changes
 
