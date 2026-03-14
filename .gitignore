@@ -10,6 +10,9 @@ __MACOSX
 # intellij settings files
 .idea
 
+# anaconda
+anaconda_projects
+
 # latex files
 *.acn
 *.acr
