@@ -1,3 +1,6 @@
+# Input files, do not backup.
+data
+
 # generated files.
 *.aux
 *.pdf
