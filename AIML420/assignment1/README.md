@@ -2,3 +2,12 @@
 
 ## Part1 - Implement the decision tree algorithm
 
+To generate the report
+
+```
+jupyter nbconvert question1.ipynb \
+--TagRemovePreprocessor.remove_input_tags='{"remove_cell"}' \
+--Exporter.preprocessors='["nbconvert.preprocessors.ExecutePreprocessor","nbconvert.preprocessors.TagRemovePreprocessor"]' \
+--to pdf
+```
+
