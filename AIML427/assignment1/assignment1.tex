@@ -10,7 +10,8 @@ sorting=ynt
 \usepackage{amsmath}  % Basic math symbols and environments
 \usepackage{amssymb}  % Extended symbol collection
 \usepackage{mathtools} % Fixes and additions to amsmath
-
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \begin{document}
 \title{AIML427 - Big Data Assignment \#1}
 \section{Classification, Regression and Clustering}
@@ -66,6 +67,84 @@ There aren't any labels - this is a \textbf{clustering problem}. Every completed
 The alerting system would count sessions reported anomalous by the model, and if they exceed a certain rate (or ratio), trigger an alert. The business \textbf{value} is in reducing revenue loss and escalations. Going from 3 9's to 5 9's of downtime would be worth USD \$2million in immediate revenue.
 
 In Anomaly detection, we again want short training intervals, with a lag in the training data window to avoid boiling the frog as bad features are incrementally rolled out. This would still require training every month, requiring \(25Gbps\) of processing.
+
+\section{Feature Selection/Construction Methods}
+
+(i) What are the major differences between feature ranking/feature weighting and feature
+subset selection methods? Briefly describe two typical methods (name, main idea, and
+reference) for each type.
+
+Feature Ranking is a global ordering of features, where each feature is evaluated once and then the top-K 
+features used for model training \cite{week3fsfilter}. 
+
+Feature Subset Selection will iterate over subsets and evaluate each subset, selecting the best from those reachable using the algorithm.
+
+Feature Ranking is very quick to perform typically \(O(N)\), but does not consider interactions between features. Feature Subset Selection can take significantly more time, a complete search would require \(2^N\) iterations.
+
+One example is the Pearson Correlation Coefficient \cite{pearson1895note}, which measures the linear relationship between a feature and a class label, using the covariance and standard deviation of each feature and class label.
+
+A second is Information Gain, the feature selector used in ID3 Decision Trees \cite{quinlan:induction}. The information gain for a feature is:
+
+\begin{flalign}
+	&& \text{for every value in feature} \\
+	&& entropy = -\sum p_i log_2 p_i\\
+	&& ig = entropy_{parent} - \sum{size(child)/size(parent) * entropy_{child}}\\
+\end{flalign}
+
+Feature Subset Selection is a search algorithm, producing candidate subsets for evaluation. One example is Sequential Forward Search \cite{week2featmanip}. At each stage, the proposed feature set is grown by adding the "best" feature from the remaining set. When the set's quality exceeds a defined threshold, the algorithm completes and returns the current set.
+
+Another search algorithm is Beam Search \cite{harpy}, where, instead of a single set Y growing, there are N sets. At each iteration, the N sets are grown, with the best N results kept. This allows the search to spread out and test hypotheses.
+
+(ii) Define each of: filter, wrapper, and embedded feature selection/construction
+approaches. Briefly describe two typical methods (name, main idea, and reference) for
+each approach.
+
+The Filter feature selection/construction method involves a single pass through the features and then sorting to produce the subset. It is the cheapest to execute, produces the most generalizable set but is not tuned for the specific problem.
+
+Primary Component Analysis is a Filter Feature Construction method - \cite{FRS1901LIIIOL}. It takes the data and constructs a set of Eigenvectors. The Eigenvectors are then sorted by the Eigenvalues and the top-K selected. This constructs a new feature set of size K, composed linearly from the existing parameters.
+
+Relief is a Filter Feature Selection method \cite{Kira1992TheFS}. It randomly picks values from the dataset, and uses Euclidean distance to find features that are able to find class boundaries.
+
+On each value, it looks for the closest miss and the closest row with the same label (near hit), and the closest row with a different label (near miss). It then updates the weights of features based on the following equation:
+
+\begin{align}
+W_{i}=W_{i} - \mathrm{diff}(x_{i},\mathrm{nearHit})^2 + \mathrm{diff}(x_{i},\mathrm{nearMiss})^2
+\end{align}
+This will make features that tend to cluster near similar targets unimportant, while features that find edges (near miss) more important.
+
+Wrapper feature selection methods have two phases. There is a subset selection algorithm and then the wrapped machine learning algorithm. The enclosed algorithm is the same as the one which will be used for the final training pass.
+
+Since the enclosed algorithm is problem-specific, the subset search algorithms are the differentiators. Two of these were already discussed under subset selection.
+
+A third subset search algorithm is Sequential Backwards Search \cite{week2featmanip}. It uses the same approach as Sequential Forward Search, however it starts from a full set, and removes the "worst" feature at each stage.
+
+Yu, L's paper \cite{subsetcover} recommends using set-cover to choose between forwards or backwards searches. The set cover provides a good hint at the final size of the feature set. 
+
+A fourth subset search algorithm we covered is Sequential Floating Forward Selection SFFS\cite{PUDIL19941119}. In SFFS, the algorithm alternates between adding and removing features from the set. After every addition, it tests if it can improve performance by removing a feature. While performance improves, features continue being removed. When removal stops improving performance the algorithm will add another feature. This algorithm is not guaranteed to converge, so any implementations will need to keep track of already visited sets.
+
+Embedded feature set selection/construction algorithms derive the feature subset during construction of the model.
+
+One model that can be used for both feature creation and selection is the CART DecisionTree\cite{breiman2017classification}. The features listed in the nodes of the tree is the model's feature subset. Additionally, the boolean equations in the nodes can be considered boolean features, allowing rows to be mapped onto the path through the tree. This would simplify model use dramatically, converting tree walking into a value lookup.
+
+A second embedded model is Support Vector Machines \cite{Cortes1995SupportvectorN}. The goal of the algorithm is to find the slope of a line between two classes that maximizes the distance between values in the class. Since it is mapping the input to a new set of dimensions, it is constructing features.
+
+(iii) Compare and contrast the performance of supervised filter, wrapper, and embedded
+methods in terms of the classification accuracy, the computation cost, and the
+generality to different classification methods. Explain the reasons for these
+differences.
+
+
+
+
+ - filter cheap, tends to generalize, not as accurate (hypothesis without testing)
+ - wrapper - expensive, better results for a specific model/problem.
+ - embedded - side effect of model construction, no extra cost.
+
+
+(iv) Describe the main idea of Correlation-based Feature Selection (CFS)1, including the
+two search methods that can be used with it. Is CFS a feature ranking or feature subset
+selection method? Is it a filter, wrapper, or embedded method? Justify your
+answers.
 
 \printbibliography
 
