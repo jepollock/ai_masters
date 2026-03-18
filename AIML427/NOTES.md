@@ -1,6 +1,6 @@
 # Toward Integrating Feature Selection Algorithms for Classification and Clustering
 
-@article{article,
+@article{subsetcover,
 author = {Liu, Huan and Yu, Lei},
 year = {2005},
 month = {04},
@@ -9,11 +9,11 @@ title = {Yu, L.: Toward Integrating Feature Selection Algorithm for Classificati
 volume = {17},
 journal = {IEEE Transactions on Knowledge and Data Engineering - TKDE},
 doi = {10.1109/TKDE.2005.66}
-}
+}towar
 
 Subset Generation => Subset Evaluation => Goodness => Exit if yes. Otherwise back to next subset.
 
-Complete Search - beam search is a complete search?
+Complete Search - beam search is a complete search - no.
 
 Simulated annealing as a subset search?
 
@@ -107,7 +107,7 @@ R(i)^2 provides a ranking. Sort descending, pick to the top.
 Only detects linear dependencies - slope of a line.
 To detect others, pre-apply mutations and add those features to the 
 pile (lg, 1/x, x^2, sqrt(x))
-
+f
 MutualInformation as ranking criteria
 
 Continue here.
@@ -162,7 +162,14 @@ branch and bound, "best first search", and beam search
 
 Evaluation Functions - 
  InformationMeasures is basically a DecisionTree - it uses InformationGain and ranks the features.
- Distance Measures - 
+ Distance Measures - don't understand this one -linear fit?
+   No, it's Relief, like KNN, but for feature selection.
+   It selects for features that best indicate class boundaries -> f(x) vs f(x1) => class change.
+   requires euclidean distances, so normalized data.
+ Dependence Measures - variance, covariance?
+ 
+ 
+ 
 
 
 
@@ -176,4 +183,9 @@ Wrapper - has search engines - this is where SFFS and SBS appear.
 
 
 
+
+CFS - Filter method with subset search algorithm.
+    - uses Information Gain for categorization data.
+	- uses both information gain (discrete) and Pearson's Correlation (continuous)
+	- since 
 

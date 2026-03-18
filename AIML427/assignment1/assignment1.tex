@@ -70,12 +70,11 @@ In Anomaly detection, we again want short training intervals, with a lag in the 
 
 \section{Feature Selection/Construction Methods}
 
-(i) What are the major differences between feature ranking/feature weighting and feature
-subset selection methods? Briefly describe two typical methods (name, main idea, and
-reference) for each type.
-
-Feature Ranking is a global ordering of features, where each feature is evaluated once and then the top-K 
-features used for model training \cite{week3fsfilter}. 
+\subsection{feature ranking/feature weighting vs feature
+	subset selection methods}
+	
+Feature Ranking is a global ordering of features, where each feature is evaluated once. This will then be used by a greedy subset search algorithm which will pick the top-K 
+features \cite{week3fsfilter}.
 
 Feature Subset Selection will iterate over subsets and evaluate each subset, selecting the best from those reachable using the algorithm.
 
@@ -95,9 +94,7 @@ Feature Subset Selection is a search algorithm, producing candidate subsets for 
 
 Another search algorithm is Beam Search \cite{harpy}, where, instead of a single set Y growing, there are N sets. At each iteration, the N sets are grown, with the best N results kept. This allows the search to spread out and test hypotheses.
 
-(ii) Define each of: filter, wrapper, and embedded feature selection/construction
-approaches. Briefly describe two typical methods (name, main idea, and reference) for
-each approach.
+\subsection{Define Filter, Wrapper, Embedded Feature Selection/Construction}
 
 The Filter feature selection/construction method involves a single pass through the features and then sorting to produce the subset. It is the cheapest to execute, produces the most generalizable set but is not tuned for the specific problem.
 
@@ -124,14 +121,11 @@ A fourth subset search algorithm we covered is Sequential Floating Forward Selec
 
 Embedded feature set selection/construction algorithms derive the feature subset during construction of the model.
 
-One model that can be used for both feature creation and selection is the CART DecisionTree\cite{breiman2017classification}. The features listed in the nodes of the tree is the model's feature subset. Additionally, the boolean equations in the nodes can be considered boolean features, allowing rows to be mapped onto the path through the tree. This would simplify model use dramatically, converting tree walking into a value lookup.
+CART DecisionTree\cite{breiman2017classification} can be used for both feature selection and feature construction. The feature list from the nodes of the tree is the feature subset. Additionally, the boolean equations in the nodes can be considered new boolean features, allowing rows to be mapped onto the path through the tree. This would simplify model use dramatically, converting tree walking into a value lookup.
 
 A second embedded model is Support Vector Machines \cite{Cortes1995SupportvectorN}. The goal of the algorithm is to find the slope of a line between two classes that maximizes the distance between values in the class. Since it is mapping the input to a new set of dimensions, it is constructing features.
 
-(iii) Compare and contrast the performance of supervised filter, wrapper, and embedded
-methods in terms of the classification accuracy, the computation cost, and the
-generality to different classification methods. Explain the reasons for these
-differences.
+\subsection{Compare and contrast the performance of supervised filter, wrapper, and embedded methods}
 
 Filter methods generalize best to different problems, are generally cheap and provide the worst accuracy.
 
@@ -139,31 +133,21 @@ Wrapper methods generalize the worst, are very expensive but provide the best ac
 
 Embedded methods are in the middle, providing accuracy, cost and generality between the other two.
 
-Filter methods are cheap because they tend to be non-iterative. They are typically single pass with a final sort to obtain the final set.
+Filter methods are cheap because they tend to be non-iterative. They are typically single pass with a final sort to obtain the final set. If they are performing complete subset searches, the evaluation function can be made incremental and does not involve training a model.
 
-Wrapper methods are expensive because they will train an instance of the target model at least once per subset tested. If K-CV is used, multiple models will be trained.
+Wrapper methods are expensive because they will train an instance of the target model at least once per subset tested. If K-CV is used, multiple models will be trained for each subset.
 
-Embedded methods have the same cost as Filter, and are cheaper than Wrapper methods. This is because once Filter selects a feature subset, it must train a model. An Embedded algorithm does this in a single pass producing the final model.
+Embedded methods have the same cost as Filter, and are cheaper than Wrapper methods. This is because once Filter selects a feature subset, it must train a model. An Embedded algorithm does this in a single pass producing the final model. Since Embedded only trains a single model, it will be cheaper than a Wrapper method which trains N models for each subset.
 
-Since Filter methods do not search through possible subsets, they will miss features that work well together, limiting accuracy. However, the performance of the subset will be similar between models, allowing it to generalize better.
+Filter methods do not evaluate the subsets in the final model, limiting their accuracy. However, the performance of the subset will be similar between models, allowing it to generalize better. Some filter methods do not evaluate subsets allow, only ranking features.
 
 Wrapper methods, since they test against the specific algorithm and search through the available subsets are more likely to find subsets containing features that work well together, but have limited individual predictive power. This gives them high accuracy, but low generality. The feature subset is linked to the target model algorithm.
 
-Embedded methods, like decision trees, make a single pass through the data. The algorithm is greedy, meaning some feature subsets will not evaluated. This limits accuracy. However, the greedy algorithm will generalize better, it has fewer iterations spent learning from the data. 
+Embedded methods, like decision trees, make a single training pass. The algorithm performs feature selection during model construction. A wrapper around a decision tree will end up at the same tree while being more expensive.
 
+\subsection{Correlation-based Feature Selection (CFS)1}
 
-(iv) Describe the main idea of Correlation-based Feature Selection (CFS)1, including the
-two search methods that can be used with it. Is CFS a feature ranking or feature subset
-selection method? Is it a filter, wrapper, or embedded method? Justify your
-answers.
-
-Yu, L. \cite{subsetcover} indicates that CFS is a Filter method. Reading Hall M.'s paper \cite{cfsHall}
-
-Toward Integrating Feature Selection
-Algorithms for Classification and Clustering
-
-says it is a filter method.
-
+Yu, L. \cite{subsetcover} indicates that CFS is a Filter method. Reading Hall M.'s paper \cite{cfsHall}, CFS doesn't use a model, but does validate subsets instead of features individually. Since it doesn't use a model, it can't be embeded or wrapper, leaving filter the remaining class. CFS uses BestMatch, which is a complete search, so it will find the best subset match. Hall does recommend adding an early exit criteria to the algorithm. Any complete search will produce similar results. Single forward search was also tested.
 
 
 \printbibliography
