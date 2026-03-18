@@ -133,18 +133,38 @@ methods in terms of the classification accuracy, the computation cost, and the
 generality to different classification methods. Explain the reasons for these
 differences.
 
+Filter methods generalize best to different problems, are generally cheap and provide the worst accuracy.
 
+Wrapper methods generalize the worst, are very expensive but provide the best accuracy.
 
+Embedded methods are in the middle, providing accuracy, cost and generality between the other two.
 
- - filter cheap, tends to generalize, not as accurate (hypothesis without testing)
- - wrapper - expensive, better results for a specific model/problem.
- - embedded - side effect of model construction, no extra cost.
+Filter methods are cheap because they tend to be non-iterative. They are typically single pass with a final sort to obtain the final set.
+
+Wrapper methods are expensive because they will train an instance of the target model at least once per subset tested. If K-CV is used, multiple models will be trained.
+
+Embedded methods have the same cost as Filter, and are cheaper than Wrapper methods. This is because once Filter selects a feature subset, it must train a model. An Embedded algorithm does this in a single pass producing the final model.
+
+Since Filter methods do not search through possible subsets, they will miss features that work well together, limiting accuracy. However, the performance of the subset will be similar between models, allowing it to generalize better.
+
+Wrapper methods, since they test against the specific algorithm and search through the available subsets are more likely to find subsets containing features that work well together, but have limited individual predictive power. This gives them high accuracy, but low generality. The feature subset is linked to the target model algorithm.
+
+Embedded methods, like decision trees, make a single pass through the data. The algorithm is greedy, meaning some feature subsets will not evaluated. This limits accuracy. However, the greedy algorithm will generalize better, it has fewer iterations spent learning from the data. 
 
 
 (iv) Describe the main idea of Correlation-based Feature Selection (CFS)1, including the
 two search methods that can be used with it. Is CFS a feature ranking or feature subset
 selection method? Is it a filter, wrapper, or embedded method? Justify your
 answers.
+
+Yu, L. \cite{subsetcover} indicates that CFS is a Filter method. Reading Hall M.'s paper \cite{cfsHall}
+
+Toward Integrating Feature Selection
+Algorithms for Classification and Clustering
+
+says it is a filter method.
+
+
 
 \printbibliography
 
