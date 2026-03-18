@@ -139,7 +139,7 @@ Wrapper methods are expensive because they will train an instance of the target 
 
 Embedded methods have the same cost as Filter, and are cheaper than Wrapper methods. This is because once Filter selects a feature subset, it must train a model. An Embedded algorithm does this in a single pass producing the final model. Since Embedded only trains a single model, it will be cheaper than a Wrapper method which trains N models for each subset.
 
-Filter methods do not evaluate the subsets in the final model, limiting their accuracy. However, the performance of the subset will be similar between models, allowing it to generalize better. Some filter methods do not evaluate subsets allow, only ranking features.
+Filter methods do not evaluate the subsets in the final model, limiting their accuracy. However, the performance of the subset will be similar between models, allowing it to generalize better. Some filter methods do not evaluate subsets, only ranking features.
 
 Wrapper methods, since they test against the specific algorithm and search through the available subsets are more likely to find subsets containing features that work well together, but have limited individual predictive power. This gives them high accuracy, but low generality. The feature subset is linked to the target model algorithm.
 
@@ -147,7 +147,7 @@ Embedded methods, like decision trees, make a single training pass. The algorith
 
 \subsection{Correlation-based Feature Selection (CFS)1}
 
-Yu, L. \cite{subsetcover} indicates that CFS is a Filter method. Reading Hall M.'s paper \cite{cfsHall}, CFS doesn't use a model, but does validate subsets instead of features individually. Since it doesn't use a model, it can't be embeded or wrapper, leaving filter the remaining class. CFS uses BestMatch, which is a complete search, so it will find the best subset match. Hall does recommend adding an early exit criteria to the algorithm. Any complete search will produce similar results. Single forward search was also tested.
+Yu, L. \cite{subsetcover} states that CFS is a Filter method. Reading Hall M.'s paper \cite{cfsHall}, CFS doesn't use a model, but does validate subsets instead of features individually. Since it doesn't use a model, it can't be embeded or wrapper, leaving filter the remaining class. CFS uses the BestMatch complete subset search algorithm. It will find the best subset match. Hall does recommend adding an early exit criteria to the algorithm. Any complete search will produce similar results. Single forward search was also tested, but did not perform as well.
 
 
 \printbibliography
