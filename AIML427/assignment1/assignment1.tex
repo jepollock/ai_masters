@@ -12,6 +12,20 @@ sorting=ynt
 \usepackage{mathtools} % Fixes and additions to amsmath
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{csvsimple}
+\newlength{\Lnote}
+\newcommand{\note}[1]
+{\addtolength{\leftmargini}{4em}
+	\settowidth{\Lnote}{\textbf{Note:~}}
+	\begin{quote}
+		\rule{\dimexpr\textwidth-2\leftmargini}{1pt}\\
+		\mbox{}\hspace{-\Lnote}\textbf{Note:~}%
+		#1\\[-0.5ex] 
+		\rule{\dimexpr\textwidth-2\leftmargini}{1pt}
+	\end{quote}
+	\addtolength{\leftmargini}{-4em}}
 \begin{document}
 \title{AIML427 - Big Data Assignment \#1}
 \section{Classification, Regression and Clustering}
@@ -80,76 +94,267 @@ Feature Subset Selection will iterate over subsets and evaluate each subset, sel
 
 Feature Ranking is very quick to perform typically \(O(N)\), but does not consider interactions between features. Feature Subset Selection can take significantly more time, a complete search would require \(2^N\) iterations.
 
-One example is the Pearson Correlation Coefficient \cite{pearson1895note}, which measures the linear relationship between a feature and a class label, using the covariance and standard deviation of each feature and class label.
+Pearson Correlation Coefficient \cite{pearson1895note}, measures the linear relationship between a feature and a class label.
 
-A second is Information Gain, the feature selector used in ID3 Decision Trees \cite{quinlan:induction}. The information gain for a feature is:
+Information Gain, \cite{quinlan:induction} is derived from the entropy/purity/ratio of classes before and after a {feature, value} pair are used.
 
-\begin{flalign}
-	&& \text{for every value in feature} \\
-	&& entropy = -\sum p_i log_2 p_i\\
-	&& ig = entropy_{parent} - \sum{size(child)/size(parent) * entropy_{child}}\\
-\end{flalign}
+Feature Subset Selection is a search algorithm, producing candidate subsets for evaluation. Sequential Forward Search \cite{week2featmanip} grows the proposed feature set by adding the "best" feature from the remaining set. The algorithm completes when the set exceeds a preconfigured threshold.
 
-Feature Subset Selection is a search algorithm, producing candidate subsets for evaluation. One example is Sequential Forward Search \cite{week2featmanip}. At each stage, the proposed feature set is grown by adding the "best" feature from the remaining set. When the set's quality exceeds a defined threshold, the algorithm completes and returns the current set.
-
-Another search algorithm is Beam Search \cite{harpy}, where, instead of a single set Y growing, there are N sets. At each iteration, the N sets are grown, with the best N results kept. This allows the search to spread out and test hypotheses.
+Beam Search \cite{harpy}, grows N sets. At each iteration, the N sets are grown, with the best N results kept. This allows the search to spread out and test hypotheses.
 
 \subsection{Define Filter, Wrapper, Embedded Feature Selection/Construction}
 
-The Filter feature selection/construction method involves a single pass through the features and then sorting to produce the subset. It is the cheapest to execute, produces the most generalizable set but is not tuned for the specific problem.
+The Filter feature selection/construction method involves a single pass through the features and then sorting to produce the subset.
 
-Primary Component Analysis is a Filter Feature Construction method - \cite{FRS1901LIIIOL}. It takes the data and constructs a set of Eigenvectors. The Eigenvectors are then sorted by the Eigenvalues and the top-K selected. This constructs a new feature set of size K, composed linearly from the existing parameters.
+Primary Component Analysis \cite{FRS1901LIIIOL} translates the features to a new set of orthogonal features using Eigenvectors.
 
-Relief is a Filter Feature Selection method \cite{Kira1992TheFS}. It randomly picks values from the dataset, and uses Euclidean distance to find features that are able to find class boundaries.
+Relief \cite{Kira1992TheFS} randomly picks values from the dataset, using Euclidean distance to find features that are able to find class boundaries.
 
-On each value, it looks for the closest miss and the closest row with the same label (near hit), and the closest row with a different label (near miss). It then updates the weights of features based on the following equation:
+Wrapper feature selection methods contain a subset selection algorithm and the wrapped machine learning algorithm. The enclosed algorithm is the same as the one which will be used for the final training pass.
 
-\begin{align}
-W_{i}=W_{i} - \mathrm{diff}(x_{i},\mathrm{nearHit})^2 + \mathrm{diff}(x_{i},\mathrm{nearMiss})^2
-\end{align}
-This will make features that tend to cluster near similar targets unimportant, while features that find edges (near miss) more important.
-
-Wrapper feature selection methods have two phases. There is a subset selection algorithm and then the wrapped machine learning algorithm. The enclosed algorithm is the same as the one which will be used for the final training pass.
-
-Since the enclosed algorithm is problem-specific, the subset search algorithms are the differentiators. Two of these were already discussed under subset selection.
-
-A third subset search algorithm is Sequential Backwards Search \cite{week2featmanip}. It uses the same approach as Sequential Forward Search, however it starts from a full set, and removes the "worst" feature at each stage.
+Sequential Backwards Search \cite{week2featmanip} uses the same approach as Sequential Forward Search, beginning from a full set, and removing the "worst" feature at each stage.
 
 Yu, L's paper \cite{subsetcover} recommends using set-cover to choose between forwards or backwards searches. The set cover provides a good hint at the final size of the feature set. 
 
-A fourth subset search algorithm we covered is Sequential Floating Forward Selection SFFS\cite{PUDIL19941119}. In SFFS, the algorithm alternates between adding and removing features from the set. After every addition, it tests if it can improve performance by removing a feature. While performance improves, features continue being removed. When removal stops improving performance the algorithm will add another feature. This algorithm is not guaranteed to converge, so any implementations will need to keep track of already visited sets.
+Sequential Floating Forward Selection SFFS\cite{PUDIL19941119} alternates between adding and removing features from the set. This algorithm is not guaranteed to converge, so any implementations will need to keep track of already visited sets.
 
 Embedded feature set selection/construction algorithms derive the feature subset during construction of the model.
 
-CART DecisionTree\cite{breiman2017classification} can be used for both feature selection and feature construction. The feature list from the nodes of the tree is the feature subset. Additionally, the boolean equations in the nodes can be considered new boolean features, allowing rows to be mapped onto the path through the tree. This would simplify model use dramatically, converting tree walking into a value lookup.
+CART DecisionTree\cite{breiman2017classification} can be used for both feature selection and feature construction. The feature list from the nodes of the tree is the feature subset. The boolean equations in the nodes can be considered new boolean features, allowing rows to be mapped onto the path through the tree.
 
-A second embedded model is Support Vector Machines \cite{Cortes1995SupportvectorN}. The goal of the algorithm is to find the slope of a line between two classes that maximizes the distance between values in the class. Since it is mapping the input to a new set of dimensions, it is constructing features.
+Support Vector Machines \cite{Cortes1995SupportvectorN} finds the slope of a line between two classes that maximizes the distance between values in the class by mapping into a new set of dimensions.
 
 \subsection{Compare and contrast the performance of supervised filter, wrapper, and embedded methods}
 
-Filter methods generalize best to different problems, are generally cheap and provide the worst accuracy.
+Filter methods generalize best to different problems, are generally cheap and provide the worst accuracy. Filter methods are cheap because they use cheap evaluation functions (linear). Filter methods do not evaluate the subsets in the target model, limiting the resulting accuracy. The subset's performance will be similar between models, allowing it to generalize better.
 
-Wrapper methods generalize the worst, are very expensive but provide the best accuracy.
-
-Embedded methods are in the middle, providing accuracy, cost and generality between the other two.
-
-Filter methods are cheap because they tend to be non-iterative. They are typically single pass with a final sort to obtain the final set. If they are performing complete subset searches, the evaluation function can be made incremental and does not involve training a model.
-
-Wrapper methods are expensive because they will train an instance of the target model at least once per subset tested. If K-CV is used, multiple models will be trained for each subset.
-
-Embedded methods have the same cost as Filter, and are cheaper than Wrapper methods. This is because once Filter selects a feature subset, it must train a model. An Embedded algorithm does this in a single pass producing the final model. Since Embedded only trains a single model, it will be cheaper than a Wrapper method which trains N models for each subset.
-
-Filter methods do not evaluate the subsets in the final model, limiting their accuracy. However, the performance of the subset will be similar between models, allowing it to generalize better. Some filter methods do not evaluate subsets, only ranking features.
-
-Wrapper methods, since they test against the specific algorithm and search through the available subsets are more likely to find subsets containing features that work well together, but have limited individual predictive power. This gives them high accuracy, but low generality. The feature subset is linked to the target model algorithm.
-
-Embedded methods, like decision trees, make a single training pass. The algorithm performs feature selection during model construction. A wrapper around a decision tree will end up at the same tree while being more expensive.
+Wrapper methods generalize the worst, are very expensive but provide the best accuracy. Wrapper methods train an instance of the target model at least once per subset tested. Testing against the target model with subset search is more likely to find subsets containing features that work well together, but have limited individual predictive power. This gives wrapper methods high accuracy, but low generality. The feature subset is linked to the target model algorithm.
+ 
+Embedded methods are in the middle, providing accuracy, cost and generality between the other two. Embedded methods have the same cost as Filter, and are cheaper than Wrapper methods (both train the target model once). Since Embedded only trains a single model, it will be cheaper than a Wrapper method which trains N models for each subset. Embedded methods perform feature selection during model construction.
 
 \subsection{Correlation-based Feature Selection (CFS)1}
 
-Yu, L. \cite{subsetcover} states that CFS is a Filter method. Reading Hall M.'s paper \cite{cfsHall}, CFS doesn't use a model, but does validate subsets instead of features individually. Since it doesn't use a model, it can't be embeded or wrapper, leaving filter the remaining class. CFS uses the BestMatch complete subset search algorithm. It will find the best subset match. Hall does recommend adding an early exit criteria to the algorithm. Any complete search will produce similar results. Single forward search was also tested, but did not perform as well.
+Yu, L. \cite{subsetcover} states that CFS is a Filter method. Reading Hall M.'s paper \cite{cfsHall}, CFS doesn't use a model, but does validate subsets instead of features individually. Since it doesn't use a model, it can't be embeded or wrapper, leaving filter the remaining class. CFS uses the BestMatch complete subset search algorithm, although Hall recommends adding an early exit criteria. Any complete search will produce similar results. Single forward search was also tested, but did not perform as well.
+
+\section{Use KNIME to perform Feature Selection}
+
+\subsection{(i) Naive Bayes}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_1_a_nb_full}
+	\caption{NB pre-split dataset}
+	\label{fig:3.i.a}
+\end{figure}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | c | c | }
+		\hline
+		\textbf{Data Set} & \textbf{Accuracy} \\
+		\hline
+		Training & 82.86\% \\
+		\hline
+		Test & 80.19\% \\
+	    \hline
+	\end{tabular}
+	\caption{3.i.a naive bayes, pre-split dataset.}
+\end{table}
 
 
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_1_b_nb_split}
+	\caption{NB split with fixed seed dataset}
+	\label{fig:3.i.b}
+\end{figure}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | c | c | }
+		\hline
+		\textbf{Data Set} & \textbf{Accuracy} \\
+		\hline
+		Training & 86.21\% \\
+		\hline
+		Test & 85.85\% \\
+		\hline
+	\end{tabular}
+	\caption{3.i.b naive bayes, split dataset.}
+\end{table}
+
+The two datasets produced different training and test results. This is expected since the data is randomly associated between the two. To obtain a more accurate stable measure of the accuracy of the model, K-fold cross validation should be performed on the training data. That will give an average and std deviation of the model, allowing the model's stability to be assessed.
+
+\subsection{(ii) Forward Feature Selection}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_2_fsf_wrong}
+	\caption{FSF on full dataset}
+	\label{fig:3.ii}
+\end{figure}
+
+Features Selected: F1-5, F7, F9, F11, F13, F15, F22-28
+
+By performing feature selection without splitting the data, the results embed bias. We won't know if the model generalizes well or if it is overfitted to the dataset.
+
+\subsection{(iii) Forward Feature Selection}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_3_fsf_wrong}
+	\caption{NB with unsplit feature selection dataset}
+	\label{fig:3.iii}
+\end{figure}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | c | c | }
+		\hline
+		\textbf{Data Set} & \textbf{Accuracy} \\
+		\hline
+		Training & 91.02\% \\
+		\hline
+		Test & 89.62\% \\
+		\hline
+	\end{tabular}
+	\caption{3.iii improperly filtered dataset.}
+\end{table}
+
+The increase in training accuracy shows that feature selection is improving the accuracy. However, the testing results cannot be trusted to demonstrate generalization. Dropping unimportant features should allow the remaining features to provide a stronger signal.
+
+\subsection{(iv) Forward Feature Selection - correct}
+
+\note{Test set filtering is not required, the model ignores unknown features.}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_4_fsf_correct}
+	\caption{NB with properly split feature selection dataset}
+	\label{fig:3.iv}
+\end{figure}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | c | c | }
+		\hline
+		\textbf{Data Set} & \textbf{Accuracy} \\
+		\hline
+		Training & 91.43\% \\
+		\hline
+		Test & 89.62\% \\
+		\hline
+	\end{tabular}
+	\caption{3.iv correctly filtered dataset.}
+\end{table}
+
+Features Selected: F3,F4,F7,F23
+
+Comparing with i(a), we see a 9\% improvement in training and test accuracy. Naive Bayes assumes that features are independent. If the features are not independent, the model will be more confident - there will be mulitple sources of confidence for the same answer. Feature selection will result in a better performing subset, increasing feature independence. 
+
+We don't see significant changes in accuracy from the improperly done feature selection. However, the split did give us a much smaller feature set and we see the model generalizes. 
+
+\subsection{(v) C4.5 Decision Tree}
+
+\note{Decision Tree View (simple) does not appear to be available, I converted the tree to an image instead.}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_5_dt}
+	\caption{C4.5 Decision Tree}
+	\label{fig:3.v}
+\end{figure}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | c | c | }
+		\hline
+		\textbf{Data Set} & \textbf{Accuracy} \\
+		\hline
+		Training & 97.55\% \\
+		\hline
+		Test & 91.51\% \\
+		\hline
+	\end{tabular}
+	\caption{3.v C4.5 Decision Tree.}
+\end{table}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_5_tree_view}
+	\caption{C4.5 Decision Tree Structure}
+	\label{fig:3.v_a}
+\end{figure}
+
+At each point, the algorithm picks the best split point. The feature subset can be extracted from the tree by combining the features from all the nodes.
+
+\subsection{(vi) PCA with C4.5 Decision Tree}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_6_pca}
+	\caption{PCA Filtered C4.5 Decision Tree}
+	\label{fig:3.vi}
+\end{figure}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | c | c | }
+		\hline
+		\textbf{Data Set} & \textbf{Accuracy} \\
+		\hline
+		Training & 95.92\% \\
+		\hline
+		Test & 88.68\% \\
+		\hline
+	\end{tabular}
+	\caption{3.vi PCA filtered C4.5 Decision Tree.}
+\end{table}
+
+See "3\_6\_pca\_top5.csv" to see the top-5 principal components. The top-5 eigenvalues were:
+
+8.712990413236952, 
+3.9565684550423805, 
+2.752964596790358, 
+2.4668984522889423, 
+1.980269212245705
+
+While the training results were better, the test accuracy was worse. I feel this means there are non-linear relationships the regular tree is able to find. PCA would lose that information during the transformation.
+
+\subsection{(vii) Correlation-based Feature Selection}
+
+\note{Feature1 dropped due to no variance}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_7_cfs}
+	\caption{CFS}
+	\label{fig:3.vii}
+\end{figure}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | c | c | }
+		\hline
+		\textbf{Data Set} & \textbf{Accuracy} \\
+		\hline
+		Training & 88.16\% \\
+		\hline
+		Test & 87.74\% \\
+		\hline
+	\end{tabular}
+	\caption{3.vii CFS filtered Naive Bayes.}
+\end{table}
+
+Features Selected: F2-3, F5-9, F12-15, F20, F24-25, F27-29, F30
+Wrapper Features Selected: F3,F4,F7,F23
+
+Naive Bayes using the wrapper produced a test accuracy of 89.62\%, while CFS returned 87.46\%. The wrapper algorithm trained 561 models, while CFS had 528 iterations (FeatureSelectionLoopStart.maxIterations). The algorithm is hard to implement in CNIME, making the execution of CFS take approximately twice as long. Interestingly, the two feature sets only share F3, and the wrapper method produced a much smaller feature set.
 \printbibliography
+
+\section{Appendix - Features}
+
+\textbf{Eigenvalue:} 8.712990413236952 \\
+\textbf{FeatureVector:} 0,0.11199022986101669,-0.10303021919094062,0.16815076555816535,-0.1060047154229859,0.20791921154974005,-0.16152211161768934,0.23480440275633543,-0.15953740406422262,0.24872695636743872,-0.1337943469074957,0.2794105900437599,-0.07512049777150774,0.2894785629780161,-0.10876769831122128,0.27570165755626874,0.001792385450309065,0.276924091391784,0.016577455061158874,0.27971887612523094,0.08077353268979962,0.2685866162909499,0.02503959114572558,0.21957439123482236,0.052847583339842394,0.168651487809338,0.08113153067920159,0.19734204356781482,0.011462099958789199,0.2008574975785778,0.022487507202065223,0.22483551664525395,-0.03608722053709462 \\
+\textbf{Eigenvalue:} 3.9565684550423805 \\
+\textbf{FeatureVector:} 0,-0.10623526016439234,-0.10533253814837638,-0.12655469049655385,0.038180238817907663,-0.136868138990739,-0.08104041299172997,-0.09213411640470774,-0.07765434316750879,-0.09825032794826052,-0.16635024325027592,-0.13197251978769473,-0.23200776171152912,-0.11329732256313002,-0.24045123062447926,-0.026799059112381205,-0.26697535283159807,-0.00309924243882642,-0.39561512287516853,0.04957616236190548,-0.33008875014801625,0.054461241328090035,-0.28397896155427915,0.12747534738441746,-0.2615397290475803,0.11866913443193763,-0.27486075264175835,0.15253184314915547,-0.2433247149864297,0.15714404827358391,-0.10143388600997148,0.12274677528655142,-0.10370669770796156
+\textbf{Eigenvalue:} 2.752964596790358 \\
+\textbf{FeatureVector:} 0,0.32439304827175375,0.192713595706209,0.25945585400047,0.23352072918850086,0.18892009532465057,0.32628493500626293,0.0059715537724046724,0.2262399116025407,-0.08814007481323394,0.30146837754966216,-0.08179084542707214,0.23455228538544293,-0.05836976145352405,0.12693376330336056,-0.12445570319343335,-0.031979592214529055,-0.059270764428783165,-0.04897568751795348,0.021731225619893508,-0.15217748696155603,0.06468227636843463,-0.1434713087258693,0.1964300978331025,-0.1782681050569509,0.04539407515486823,0.05690120951076274,0.2593575601675889,0.015156696772432438,0.2318863194639183,0.11297526911356633,0.22344535730877246,0.1791370987510147 \\
+\textbf{Eigenvalue:} 2.4668984522889423 \\
+\textbf{FeatureVector:} 0,0.17538598546231507,0.05166655583172295,0.15659791914802845,-0.14679828407404175,0.17681796868609403,-0.07509659698295458,0.19311845805095695,0.08451164798310862,0.08612921872706461,0.12629699602102196,0.09188454727994547,0.21564382670788013,0.08268955358261985,0.01868892330882208,-0.008461142841062143,0.0064367819923778725,-0.057243746899859935,0.04555080152536112,-0.0675534348524617,0.02378248720144592,-0.12157990609777602,0.052783351728858605,-0.13352056808300186,-0.23608618422908664,-0.24526744771577808,-0.2918779888224897,-0.10204165254307083,-0.2635122951536268,0.023713859299413984,-0.4907918946447774,0.061155102001193874,-0.42608742827600476 \\
+\textbf{Eigenvalue:} 1.980269212245705 \\
+\textbf{FeatureVector:} 0,-0.04706341589402093,0.468805832707772,0.002504656308596978,-0.42783822765145557,-0.10757608349258725,0.03257118337644784,-0.1199964152529897,0.0074500313041286625,0.049022573783626455,0.10676559814861622,0.006029664023462412,-0.035545886122166755,0.025043679768620774,-0.058678390826969254,0.004462911783591111,-0.36837662075472444,-0.029372574901969335,-0.045356403021704024,-0.062071377282175676,-0.007183575567238008,0.1374546037484637,0.3098276843476896,0.06793449022629393,-0.23666394292691045,0.22494513177587194,0.032170854466240184,0.0513136162879607,0.37805285693333945,-0.01911405995229084,-0.15910786485313774,-0.08787117918713866,-0.0064792718164519885
+
 
 \end{document}

@@ -189,3 +189,84 @@ CFS - Filter method with subset search algorithm.
 	- uses both information gain (discrete) and Pearson's Correlation (continuous)
 	- since 
 
+
+KNIME work
+
+1) train Naive Bayes on train.csv and test on test.csv - report train/test accuracy
+
+Training accuracy: 82.86%
+Testing accuracy: 80.19%
+
+2) split using specific seed 202203 70/30 and redo
+3) Discuss the results.
+
+Training accuracy: 86.12
+Testing accuracy: 85.85
+
+This new seed performs better than the previous split. This shows the algorithm is sensitive to the seed, and we should explore this using k-cv and multiple seeds to find the variation/std deviation. The algorithm may be unstable in the inclusion of a particular row in the training data.
+
+4) Use SFS wrapping NB with default settings on whole dataset.
+   what is selected. what is wrong - NO TEST SET!
+
+F1-5, F7, F9, F11, F13, F15, F22-28
+
+Since there wasn't a test/train split, this will bias the model. We won't know if the model generalizes well because the feature set was generated from data we would later use to test it.
+
+
+
+
+   
+5) Use the selected features in (4) and transfort training + test set. Compare with 1(a), why is there a difference? Answer:There may be bias from the test data, resulting in the model overfitting the dataset.
+
+Training Accuracy: 91.02%
+Test Accuracy: 89.62%
+
+The change on Training accuracy is because noisy features are removed, allowing the better signal to be retrieved.
+
+
+6) Repeat 4+5 using the training set.
+
+Training Accuracy: 91.43%
+Test Accuracy: 89.62%
+
+It selected many fewer features - F3,4,7,23 for no loss in test accuracy.
+
+
+7) Now do a C4.5 decision tree.
+
+Training Accuracy: 97.55%
+Testing Accuracy: 91.51%
+
+Features selected
+F2-5,F7,F9,F15,F16,F22,F23
+
+
+8) Now use PCA and then do a decision tree.
+
+Decision tree ends up more balanced.
+
+
+Training Accuracy: 96.33%
+Testing Accuracy: 82.08%
+
+It fits the training data well, but doesn't generalize as well. Too much information was lost by filtering down to 5 features. Even going to 20 features doesn't reach the same quality. PCA makes this worse. Why? Feature relationships are non-linear?
+
+
+9) Now use CFS
+
+Score = Merit
+
+Merit = sum(lookup(feature, class, correlation_table)) got it.
+
+Remember, the corelation matrix needs to be normalized!
+
+		sqrt(len(fs_set) + (len(fs_set)-1)*sum(lookup(feature, other features, correlation_table)))
+		
+	    sqrt(k + (k-1)*sum(lookup(feature, other features, correlation_table)))
+
+
+lookup(feature, class, correlation_table) = 
+    filter(cols = features, filter(row_id = class, correlation_matrix))
+	
+
+
