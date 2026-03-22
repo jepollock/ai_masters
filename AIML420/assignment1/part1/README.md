@@ -22,6 +22,15 @@ To process a CSV using part1's decision tree code:
 python standalone.py --infile ../data/rtg_A.csv --outfile ../tree_structure
 ```
 
+It will produce the file `../tree_structure.pdf` and output:
+
+```
+**Accuracy
+
+
+**Accuracy** = 0.92
+```
+
 The source code for the tree is available in question1.ipynb. The tree structures will be in tree\_struct\_<A|B|C>.pdf
 
 ### Report Generation
