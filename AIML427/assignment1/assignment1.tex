@@ -15,6 +15,8 @@ sorting=ynt
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{csvsimple}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage{indentfirst}
 \newlength{\Lnote}
 \newcommand{\note}[1]
 {\addtolength{\leftmargini}{4em}
@@ -87,8 +89,7 @@ In Anomaly detection, we again want short training intervals, with a lag in the 
 \subsection{feature ranking/feature weighting vs feature
 	subset selection methods}
 	
-Feature Ranking is a global ordering of features, where each feature is evaluated once. This will then be used by a greedy subset search algorithm which will pick the top-K 
-features \cite{week3fsfilter}.
+Feature Ranking is a global ordering of features, where each feature is evaluated once. This will then be used by a greedy subset search algorithm which will pick the top-K features \cite{week3fsfilter}.
 
 Feature Subset Selection will iterate over subsets and evaluate each subset, selecting the best from those reachable using the algorithm.
 
@@ -96,7 +97,7 @@ Feature Ranking is very quick to perform typically \(O(N)\), but does not consid
 
 Pearson Correlation Coefficient \cite{pearson1895note}, measures the linear relationship between a feature and a class label.
 
-Information Gain, \cite{quinlan:induction} is derived from the entropy/purity/ratio of classes before and after a \{feature, value\} pair are used to split the dataset.
+Information Gain, \cite{quinlan:induction} is derived from the entropy/purity/ratio of classes before and after a \{feature, value\} pair splits the dataset.
 
 Feature Subset Selection is a search algorithm, producing candidate subsets for evaluation. Sequential Forward Search \cite{week2featmanip} grows the proposed feature set by adding the "best" feature from the remaining set. The algorithm completes when the set exceeds a preconfigured threshold.
 
@@ -110,11 +111,9 @@ Primary Component Analysis \cite{FRS1901LIIIOL} translates the features to a new
 
 Relief \cite{Kira1992TheFS} randomly picks values from the dataset, using Euclidean distance to find features that are able to find class boundaries.
 
-Wrapper feature selection methods contain a subset selection algorithm and the wrapped machine learning algorithm. The target algorithm is used during feature selection.
+Wrapper feature selection methods contain a subset selection algorithm and the target machine learning algorithm is used to evaluate subset quality.
 
-Sequential Backwards Search \cite{week2featmanip} uses the same approach as Sequential Forward Search, beginning from a full set, and removing the "worst" feature at each stage.
-
-Yu, L's paper \cite{subsetcover} recommends using set-cover to choose between forwards or backwards searches. The set cover provides a good hint at the final size of the feature set. 
+Sequential Backwards Search \cite{week2featmanip} uses the same approach as Sequential Forward Search, beginning from a full set, and removing the "worst" feature at each stage. Yu, L \cite{subsetcover} recommends using set-cover to choose between forwards or backwards searches.
 
 Sequential Floating Forward Selection SFFS\cite{PUDIL19941119} alternates between adding and removing features from the set. This algorithm is not guaranteed to converge, so any implementations will need to keep track of already visited sets.
 
@@ -140,11 +139,7 @@ Yu, L. \cite{subsetcover} states that CFS is a Filter method. Reading Hall M.'s 
 
 \subsection{(i) Naive Bayes}
 
-\begin{figure}[H]
-	\includegraphics[width=1.0\textwidth]{3_1_a_nb_full}
-	\caption{NB pre-split dataset}
-	\label{fig:3.i.a}
-\end{figure}
+KNime image: \nameref{fig:3.i.a}
 
 \begin{table}[H]
 	\centering
@@ -161,11 +156,7 @@ Yu, L. \cite{subsetcover} states that CFS is a Filter method. Reading Hall M.'s 
 \end{table}
 
 
-\begin{figure}[H]
-	\includegraphics[width=1.0\textwidth]{3_1_b_nb_split}
-	\caption{NB split with fixed seed dataset}
-	\label{fig:3.i.b}
-\end{figure}
+KNime image: \nameref{fig:3.i.b}
 
 \begin{table}[H]
 	\centering
@@ -185,11 +176,7 @@ The two datasets produced different training and test results. This is expected 
 
 \subsection{(ii) Forward Feature Selection}
 
-\begin{figure}[H]
-	\includegraphics[width=1.0\textwidth]{3_2_fsf_wrong}
-	\caption{FSF on full dataset}
-	\label{fig:3.ii}
-\end{figure}
+KNime image: \nameref{fig:3.ii}
 
 Features Selected: F1-5, F7, F9, F11, F13, F15, F22-28
 
@@ -197,11 +184,7 @@ By performing feature selection without splitting the data, the results embed bi
 
 \subsection{(iii) Forward Feature Selection}
 
-\begin{figure}[H]
-	\includegraphics[width=1.0\textwidth]{3_3_fsf_wrong}
-	\caption{NB with unsplit feature selection dataset}
-	\label{fig:3.iii}
-\end{figure}
+KNime image: \nameref{fig:3.iii}
 
 \begin{table}[H]
 	\centering
@@ -223,11 +206,7 @@ The increase in training accuracy shows that feature selection is improving the 
 
 \note{Test set filtering is not required, the model ignores unknown features.}
 
-\begin{figure}[H]
-	\includegraphics[width=1.0\textwidth]{3_4_fsf_correct}
-	\caption{NB with properly split feature selection dataset}
-	\label{fig:3.iv}
-\end{figure}
+KNime image: \nameref{fig:3.iv}
 
 \begin{table}[H]
 	\centering
@@ -253,11 +232,7 @@ We don't see significant changes in accuracy from the improperly done feature se
 
 \note{Decision Tree View (simple) does not appear to be available, I converted the tree to an image instead.}
 
-\begin{figure}[H]
-	\includegraphics[width=1.0\textwidth]{3_5_dt}
-	\caption{C4.5 Decision Tree}
-	\label{fig:3.v}
-\end{figure}
+KNime image: \nameref{fig:3.v}
 
 \begin{table}[H]
 	\centering
@@ -273,21 +248,13 @@ We don't see significant changes in accuracy from the improperly done feature se
 	\caption{3.v C4.5 Decision Tree.}
 \end{table}
 
-\begin{figure}[H]
-	\includegraphics[width=1.0\textwidth]{3_5_tree_view}
-	\caption{C4.5 Decision Tree Structure}
-	\label{fig:3.v_a}
-\end{figure}
+KNime image: \nameref{fig:3.v_a}
 
 At each point, the algorithm picks the best split point. The feature subset can be extracted from the tree by combining the features from all the nodes.
 
 \subsection{(vi) PCA with C4.5 Decision Tree}
 
-\begin{figure}[H]
-	\includegraphics[width=1.0\textwidth]{3_6_pca}
-	\caption{PCA Filtered C4.5 Decision Tree}
-	\label{fig:3.vi}
-\end{figure}
+KNime image: \nameref{fig:3.vi}
 
 \begin{table}[H]
 	\centering
@@ -317,11 +284,7 @@ While the training results were better, the test accuracy was worse. I feel this
 
 \note{Feature1 dropped due to no variance}
 
-\begin{figure}[H]
-	\includegraphics[width=1.0\textwidth]{3_7_cfs}
-	\caption{CFS}
-	\label{fig:3.vii}
-\end{figure}
+KNime image: \nameref{fig:3.vii}
 
 \begin{table}[H]
 	\centering
@@ -356,5 +319,60 @@ Naive Bayes using the wrapper produced a test accuracy of 89.62\%, while CFS ret
 \textbf{Eigenvalue:} 1.980269212245705 \\
 \textbf{FeatureVector:} 0,-0.04706341589402093,0.468805832707772,0.002504656308596978,-0.42783822765145557,-0.10757608349258725,0.03257118337644784,-0.1199964152529897,0.0074500313041286625,0.049022573783626455,0.10676559814861622,0.006029664023462412,-0.035545886122166755,0.025043679768620774,-0.058678390826969254,0.004462911783591111,-0.36837662075472444,-0.029372574901969335,-0.045356403021704024,-0.062071377282175676,-0.007183575567238008,0.1374546037484637,0.3098276843476896,0.06793449022629393,-0.23666394292691045,0.22494513177587194,0.032170854466240184,0.0513136162879607,0.37805285693333945,-0.01911405995229084,-0.15910786485313774,-0.08787117918713866,-0.0064792718164519885
 
+\section{Appendix - Figures} \label{app.figures}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_1_a_nb_full}
+	\caption{NB pre-split dataset}
+	\label{fig:3.i.a}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_1_b_nb_split}
+	\caption{NB split with fixed seed dataset}
+	\label{fig:3.i.b}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_2_fsf_wrong}
+	\caption{FSF on full dataset}
+	\label{fig:3.ii}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_3_fsf_wrong}
+	\caption{NB with unsplit feature selection dataset}
+	\label{fig:3.iii}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_4_fsf_correct}
+	\caption{NB with properly split feature selection dataset}
+	\label{fig:3.iv}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_5_dt}
+	\caption{C4.5 Decision Tree}
+	\label{fig:3.v}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_5_tree_view}
+	\caption{C4.5 Decision Tree Structure}
+	\label{fig:3.v_a}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_6_pca}
+	\caption{PCA Filtered C4.5 Decision Tree}
+	\label{fig:3.vi}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{3_7_cfs}
+	\caption{CFS}
+	\label{fig:3.vii}
+\end{figure}
 
 \end{document}
