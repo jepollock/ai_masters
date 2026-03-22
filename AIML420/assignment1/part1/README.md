@@ -2,6 +2,8 @@
 
 ## Part1 - Implement the decision tree algorithm
 
+Tested on `barretts`.
+
 ```
 (base) part1 % python standalone.py --help
 usage: standalone.py [-h] [-i INFILE] [-o OUTFILE]
