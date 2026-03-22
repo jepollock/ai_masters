@@ -24,11 +24,14 @@ The source code for the tree is available in question1.ipynb. The tree structure
 
 ### Report Generation
 
-To generate the question1's PDF report:
+NOTE: The kernel needs to be changed to the available python3 kernel.
+
+To generate question1's PDF report:
 
 ```
 jupyter nbconvert question1.ipynb \
 --TagRemovePreprocessor.remove_input_tags='{"remove_cell"}' \
+--ExecutePreprocessor.kernel_name=python3 \
 --Exporter.preprocessors='["nbconvert.preprocessors.ExecutePreprocessor","nbconvert.preprocessors.TagRemovePreprocessor"]' \
 --to pdf
 ```
