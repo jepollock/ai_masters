@@ -11,3 +11,13 @@ jupyter nbconvert question1.ipynb \
 --to pdf
 ```
 
+## Part1 - Run the decision tree algorithm standalone
+
+```
+jupyter nbconvert --to script standalone.ipynb
+python standalone.py --infile ../data/rtg_A.csv --outfile ../wombat
+
+```
+
+
+
