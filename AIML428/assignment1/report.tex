@@ -1,0 +1,131 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+\addbibresource{references.bib}
+\usepackage{amsmath}  % Basic math symbols and environments
+\usepackage{amssymb}  % Extended symbol collection
+\usepackage{mathtools} % Fixes and additions to amsmath
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{csvsimple}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage{indentfirst}
+\newlength{\Lnote}
+\newcommand{\note}[1]
+{\addtolength{\leftmargini}{4em}
+	\settowidth{\Lnote}{\textbf{Note:~}}
+	\begin{quote}
+		\rule{\dimexpr\textwidth-2\leftmargini}{1pt}\\
+		\mbox{}\hspace{-\Lnote}\textbf{Note:~}%
+		#1\\[-0.5ex] 
+		\rule{\dimexpr\textwidth-2\leftmargini}{1pt}
+	\end{quote}
+	\addtolength{\leftmargini}{-4em}}
+\begin{document}
+\title{AIML428 - Natural Language Processing Assignment \#1}
+\section{Steps Completed}
+
+All steps were completed.
+
+\section{How to Setup}
+
+I make use of the GloVe embeddings. To set up the environment:
+
+
+\begin{verbatim}
+mkdir data
+mv bbc-fulltext.zip data
+cd data
+wget https://nlp.stanford.edu/data/wordvecs/glove.2024.wikigiga.50d.zip
+unzip glove.2024.wikigiga.50d.zip
+\end{verbatim}
+
+To prepare the BBC CSV file:
+
+
+\begin{verbatim}
+
+convert_all.sh
+\end{verbatim}
+
+It will create \verb|bbc_converted.csv| in the current directory.
+
+
+\section{Additional Packages}
+
+\begin{enumerate}
+	\item nltk
+\end{enumerate}
+
+
+
+\section{How to Run}
+
+To run the code:
+
+\begin{verbatim}
+for i in step1-3.ipynb step4_cnn.ipynb step5_pretrained_embedding.ipynb step6_bert.ipynb ; do
+jupyter nbconvert step1-3.ipynb \
+--ExecutePreprocessor.kernel_name=python3 \
+--Exporter.preprocessors='["nbconvert.preprocessors.ExecutePreprocessor"]' \
+--to pdf
+done
+\end{verbatim}
+
+
+\section{Report}
+
+There were a lot of datatype mismatches that required reading the model code to debug.
+
+To properly evaluate the different models, K-cross validation should be used. The test set splits in the report should be consistent - the same random\_seed was used. A proper evaluation would perform k-cross validation (with a fixed seed) and use that to compare model performance. That would avoid test/train splits being helpful to one model over another.
+
+\subsection{Text Frequency}
+
+Naive Bayes performed best on Text Frequency, returning 97.16\% accuracy. Decision Tree showed the most overfitting, with training accuracy at 100\%, but a test accuracy of 77.69\%.
+
+Adding in the Inverse Document Frequency made most models perform worse. Only SVM performs better than the TF version, with an accuracy of 96.26\%. Naive Bayes with TF was still the winner.
+
+\subsection{TF-IDF}
+
+I believe that normalization works against the model for Decision Trees by compressing the available bits. However, SVM is better able to differentiate classes post IDF. This may be due to the vectors being more similar. Decision Trees are poor at classifying text. There are too many unique dimensions.
+
+\subsection{CNN}
+
+The CNN in step 4 produced an accuracy of 89.52\%, failing to beat TFIDF + SVM. Lemmatization, Oversampling and Early Stopping were added. Only Random oversampling was appropriate. Smote, ADASYN require numeric dimensions. Interpolating vectors would create documents that don't make sense. I had a bug where I used "binary\_crossentropy" as the loss function, but changing it to "categorical\_crossentropy" had no effect on the final accuracy result.
+
+
+\subsection{CNNwith Pre-trained Embedding}
+
+The official online documentation (https://keras.io/examples/nlp/pretrained\_word\_embeddings/) contains at least two bugs, it breaks reading the GloVe file, and used a zip which wasn't required. Example point of speech tag conversions from Treebank to WordNet are also buggy. Lemmatization would work against the pretrained embedding, so it was removed.
+
+Switching to "categorical\_crossentropy" resulted in poorer performance on the test set. The model had an accuracy of 93.71\%. This configuration should allow the embedding to find words that are similar. While the specific term in the document may not be present, a word close in the embedding space may be present, allowing the model to find the correct classification. The confusion matrix showed that there was overlap between some of the classes, but not others. For example, Politics was frequently classified as Business, but nothing was misclassified as Sport.
+
+\subsection{Bert}
+
+Bert took way too long to run, with 3 epochs taking 30 minutes. I tried to get it to run on my GPU, but I couldn't manage it in the time available.
+
+The first run had an accuracy of 23.65\%.
+
+\begin{itemize}
+\item 3 epochs - 23.65\%
+\item 10 epochs - 23.65\%
+\item 50 epochs - failed.
+\end{itemize}
+
+After a Jupyter server restart, the model started to fail. While investigating, I learned that the model picks settings like loss function based on the data provided. I am using OrdinalEncoder to translate the labels, which defaults to float64. However, float64 labels causes Bert to perform multi-label classification, using BCEWithLogitsLoss.
+
+Converting to int64 and increasing the batch size to 32 resulted in the accuracy increasing to 48.05\% after 3 epochs. The model also started to improve with each epoch. With a 5 epoch run, accuracy increased to 67.66\%. This shows the model is converging, and with more epochs it should continue to improve.
+
+\begin{itemize}
+\item 3 epochs - 48.05\%
+\item 5 epochs - 67.66\%
+\end{itemize}
+
+\end{document}
