@@ -32,17 +32,17 @@ sorting=ynt
 \title{AIML428 - Natural Language Processing Assignment \#1}
 \section{Steps Completed}
 
-All steps were completed.
+All steps were completed. Step 4+ do not currently run on the lab cuda machines.
 
 \section{How to Setup}
 
-I make use of the GloVe embeddings. To set up the environment:
-
+I use the GloVe embeddings. To set up the environment:
 
 \begin{verbatim}
 mkdir data
 mv bbc-fulltext.zip data
 cd data
+unzip bbc-fulltext.zip
 wget https://nlp.stanford.edu/data/wordvecs/glove.2024.wikigiga.50d.zip
 unzip glove.2024.wikigiga.50d.zip
 \end{verbatim}
@@ -71,7 +71,7 @@ To run the code:
 
 \begin{verbatim}
 for i in step1-3.ipynb step4_cnn.ipynb step5_pretrained_embedding.ipynb step6_bert.ipynb ; do
-jupyter nbconvert ${i}.ipynb \
+jupyter nbconvert ${i}\
 --ExecutePreprocessor.kernel_name=python3 \
 --Exporter.preprocessors='["nbconvert.preprocessors.ExecutePreprocessor"]' \
 --to html
@@ -99,7 +99,7 @@ I believe that normalization works against the model for Decision Trees by compr
 
 The CNN in step 4 produced an accuracy of 89.52\%, failing to beat TFIDF + SVM. Lemmatization, Oversampling and Early Stopping were added. Only Random oversampling was appropriate. Smote, ADASYN require numeric dimensions. Interpolating vectors would create documents that don't make sense. I had a bug where I used "binary\_crossentropy" as the loss function, but changing it to "categorical\_crossentropy" had no effect on the final accuracy result.
 
-\subsection{CNNwith Pre-trained Embedding}
+\subsection{CNN with Pre-trained Embedding}
 
 The official online documentation (https://keras.io/examples/nlp/pretrained\_word\_embeddings/) contains at least two bugs, it breaks reading the GloVe file, and used a zip which wasn't required. Example point of speech tag conversions from Treebank to WordNet are also buggy. Lemmatization would work against the pretrained embedding, so it was removed.
 
