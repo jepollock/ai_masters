@@ -49,22 +49,21 @@ unzip glove.2024.wikigiga.50d.zip
 
 To prepare the BBC CSV file:
 
-
 \begin{verbatim}
-
 convert_all.sh
 \end{verbatim}
 
 It will create \verb|bbc_converted.csv| in the current directory.
 
-
 \section{Additional Packages}
+
+The following python packages are also required:
 
 \begin{enumerate}
 	\item nltk
+	\item imblearn.over\_sampling
+	\item transformers
 \end{enumerate}
-
-
 
 \section{How to Run}
 
@@ -72,10 +71,10 @@ To run the code:
 
 \begin{verbatim}
 for i in step1-3.ipynb step4_cnn.ipynb step5_pretrained_embedding.ipynb step6_bert.ipynb ; do
-jupyter nbconvert step1-3.ipynb \
+jupyter nbconvert ${i}.ipynb \
 --ExecutePreprocessor.kernel_name=python3 \
 --Exporter.preprocessors='["nbconvert.preprocessors.ExecutePreprocessor"]' \
---to pdf
+--to html
 done
 \end{verbatim}
 
@@ -99,7 +98,6 @@ I believe that normalization works against the model for Decision Trees by compr
 \subsection{CNN}
 
 The CNN in step 4 produced an accuracy of 89.52\%, failing to beat TFIDF + SVM. Lemmatization, Oversampling and Early Stopping were added. Only Random oversampling was appropriate. Smote, ADASYN require numeric dimensions. Interpolating vectors would create documents that don't make sense. I had a bug where I used "binary\_crossentropy" as the loss function, but changing it to "categorical\_crossentropy" had no effect on the final accuracy result.
-
 
 \subsection{CNNwith Pre-trained Embedding}
 
