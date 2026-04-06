@@ -1,5 +1,10 @@
+# OSX files, do not backup.
+.DS_Store
+
 # Input files, do not backup.
 data
+
+
 
 # generated files.
 *.aux
