@@ -2,6 +2,6 @@
 
 sudo port -d selfupdate
 sudo port upgrade outdated
-./kopia_sync
+./kopia_sync --delete
 
 
