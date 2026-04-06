@@ -1,0 +1,54 @@
+Question 7:
+
+What are the prior marginal posteriors of burglar, earthquake, and alarm?
+
+O.k. I need to:
+
+1) Review these graphs.
+2) Review the message passing.
+3) Review the code - understand how it displays the things in message passing.
+4) Then go through what it actually does.
+
+
+Posteriors:
+burglar:    [0.2 0.8]
+earthquake: [0.4 0.6]
+alarm:      [0.48 0.52]
+
+
+5) Extend make_network with two new nodes
+6) Then add Gibbs sampling.
+
+
+
+a) With VERBOSE= True, before any observation is made, what are the prior marginal posteriors of buglar, eq, alarm.
+
+This is the summed out values of the full posterior. Should be the values in the factors at the start?
+
+b)The code observes burglar = state 1, what is the message from factor A to earthquake? is it flat?
+
+The message from Node A to earthquake is flat [ 0.8, 0.8 ], the collider indicates that while alarm is unobserved,
+burglar and earthquake are independent. This indicates that the belief in earthquake can't be changed by observing burglar.
+
+c) The code now observes alarm = 1, what's the new posterior of earthquake?
+
+Eartquake:
+before: earthquake: [0.4 0.6]
+posterior: [0.48275862 0.51724138]
+
+This has shifted the likelihood of earthquake to false. Since we know the alarm is going off, but that there is also a burglar
+it is unnecessary for earthquake to be true. This allows it to shift towards false.
+
+
+flat - means the message is uninformative, values are all equally likely.
+
+d) P(burglar | john_called, mary_called) = 0.891
+This makes sense, since both are unlikely to be called if the alarm isn't triggered. P(mary|alarm=0) = 0.01 and P(john|alarm=0.05).
+p(alarm=0|john,mary) = 0.01 * 0.05...
+Which then flows back up and increases the likelihood of both burglars and earthquakes. However, burglars are more likely
+than earthquakes in the prior posteriors.
+
+e) Gibbs sampling, we see:
+
+    burglar     : [0.1058 0.8942]
+which conforms to the earlier probability to 2 decimal places.
