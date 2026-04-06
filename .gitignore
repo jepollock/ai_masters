@@ -1,6 +1,8 @@
 # OSX files, do not backup.
 .DS_Store
 
+253_31033_139-pycharm-support-libs
+
 # Input files, do not backup.
 data
 
