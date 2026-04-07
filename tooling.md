@@ -30,6 +30,8 @@ sudo port install texlive-latex-extra
 sudo port install texlive-latex-recommended texlive-math-science
 sudo port install texlive-bibtex-extra
 sudo port install biblatex-biber
+sudo port install texlive-pictures
+sudo port install dot2tex
 ```
 
 ## Python packages
