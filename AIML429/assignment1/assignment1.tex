@@ -19,7 +19,7 @@ sorting=ynt
 \usepackage{algpseudocode}
 \DeclareGraphicsExtensions{.png,.pdf}
 \begin{document}
-\subsection{Monty Hall favours one door}
+\section{Monty Hall favours one door}
 	
 
 \begin{align*}
@@ -41,7 +41,7 @@ sorting=ynt
     &= \frac{3}{7}
 \end{align*}	
 
-\subsection{Being Dutch Booked}
+\section{Being Dutch Booked}
 
 \begin{align*}
 P(prick) &= 0.6 \\
@@ -51,7 +51,7 @@ P(prick or !prick) &= 1\\
 
 a) This breaks the "sum rule", P(prick) + p(!prick) do not sum to 1. Since there are only two events, and they are disjoint, it also breaks the "addition rule" and the "complement rule".
 
-b) 
+b) Dutch Book
 
 \begin{align*}
 	\textbf{P(x)} &= 0.6 = \frac{1}{D} = \frac{3}{5} \\
@@ -78,11 +78,218 @@ This leads to a standard dutch book. However, it does require bettors on both be
 	\end{tabular}
 \end{center}
 
-c) A more subtle
-	
+c) A more subtle Dutch book would be one where people believe two events are independent, but are actually dependent.
+
+
+\begin{align*}
+P(A,B) &= P(A)P(B|A)\\
+\textbf{vs} \\
+P(A,B) &= P(A)P(B) \\
+\end{align*}
+
+This linkage may be weak, such that $P(B|A) = P(B) + \epsilon$. For example, the 2008 financial crisis. The assumption that mortgage failures were largely independent allowed them to be tranched and securitized. Realizing that they were not independent, and in fact shared other factors (such as the interest rate changing), allowed other investors to profit by taking bets against the entire market.
+
+\section{Maximum Expected Utility}
+
+\begin{align*}
+P(rain)	&= 0.3\\
+P(!rain) &= 0.7
+\end{align*}
+
+a) The robot should maximize utility. To calculate utility, mutiply the probability and marginalise the action.
+
+\begin{center}
+	\begin{tabular}{|c | c | c | c |}
+		\hline
+		\textbf{Action} & \textbf{rain} &  \textbf{no rain} & \textbf{utility}\\
+		\hline
+		\textbf{deploy umbrella} & 8 * P(rain) & 3 * P(!rain) & 8*0.3+3*0.7 = 4.5\\
+		\textbf{no umbrella} & -5 * P(rain)  & 10 * P(!rain) & -5*0.3+10*0.7 = 5.5 \\
+		\hline		 
+	\end{tabular}
+\end{center}
+
+The utility for not deploying the umbrella is 5.5, while the utility of deploying the umbrella is 4.5. The robot should not deploy the umbrella.
+
+b) The robot should be willing to pay a weighted sum of the difference of the expected values - like insurance where you pay a weighted value of the cost of the event.
+
+\begin{align*}
+	\text{let U(A,B)} & \text{ be the utility of action A and event B} \\
+	\text{let V(A)} & \text{ be the expected value of performing action A} \\
+	U(umbrella, rain) &= 8 \\
+	V(umbrella) &= 4.5 \\
+	U(!umbrella, !rain) &= 10 \\
+	V(!umbrella) &= 5.5 \\
+	\text{max price} &= (U(umbrella, rain) - V(umbrella))*P(rain) + (U(!umbrella, !rain) - V(!umbrella) * P(!rain)) \\
+	&= (8 - 4.5)*0.3 + (10-5.5)*0.7)\\
+	&= 3.8
+\end{align*}
+
+The robot should be willing to pay up to 3.8 for the weather report.
+
+c) One of the axioms is Transitivity:
+
+\begin{align*}
+	\text{if } L >= M and M >= N \text{ then } L >= N \\
+\end{align*}
+
+If this axiom is broken, that means there is no sort order possible. This means the robot will produce different results based on the order the lotteries are evaluated. This could (for example) lead a bot to oscillate between actions e.g. (buy, sell) out of (buy, sell, hold) depending on the order they arrive.
+
+\section{How Many Parameters}
+
+Four binary values, W, X, Y, Z.
+
+It should be ${2^4-1}$, because there are 4 binary values, but one can be calculated based on the "sum rule". 
+
+\begin{align*}
+P(W,X,Y,Z) &= P(W)P(X|W)P(Y|XW)P(Z|WXY)\\
+           &= 1 + 2 + 4 + 8 \\
+           &= 15 \\
+           &= 2^4 - 1 \\
+\end{align*}
+
+b) Bayes Structure
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{how-many-parameters-a}
+	\caption{how many parameters A}
+	\label{fig:howmanyA}
+\end{figure}
+
+Factorisation:
+\begin{align*}
+	P(W,X,Y,Z) &= P(W)P(Z)P(X|W)P(Y|Z,X)
+\end{align*}
+
+c) Using ${(k-1)k^m}$, where k is the number of values (2) and m is the node's direct ancestors, we get:
+\begin{align*}
+	P(W,X,Y,Z) &= P(W)P(Z)P(X|W)P(Y|Z,X) \\
+	           &= 1   + 1 + 2   + 4 \\
+	           &= 8 \\
+\end{align*}
+
+There are now only 8 independent parameters.
+
+d) 
+\begin{center}
+	\begin{tabular}{|c | c |}
+		\hline
+		\textbf{Relation} & \textbf{Explanation} \\
+		\hline
+		${(w \perp z)}$ & ${child(w) \cap z = \emptyset}$ and  ${child(z) \cap w = \emptyset}$\\
+		\hline
+		${(x \perp z)}$ & ${child(x) \cap z = \emptyset}$ and  ${child(z) \cap x = \emptyset}$\\
+		\hline
+		${(w \perp y | x)}$ & x breaks the path between w and y.\\
+		\hline
+		\end{tabular}
+\end{center}
+
+e) 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{how-many-parameters-b}
+	\caption{how many parameters B}
+	\label{fig:howmanyB}
+\end{figure}
+
+Since there is only one root in the tree, there are no independent parameters. Shifting Z turns the previous independencies into conditional dependencies.
+
+New relations:
+
+\begin{center}
+	\begin{tabular}{|c | c |}
+		\hline
+		\textbf{Relation} & \textbf{Explanation}\\
+		\hline
+		${(w \perp z | y)}$ & y breaks the path between w and z.\\				
+		\hline
+		${(w \perp z | x)}$ & x breaks the path between w and z.\\
+		\hline				
+		${(x \perp z | y)}$ & y breaks the path between x and z.\\							
+		\hline
+	\end{tabular}
+\end{center}
+
+\section{three motifs, three stories}
+
+\subsection{Chain}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{motifs-chain}
+	\caption{Chain}
+	\label{fig:motif-chain}
+\end{figure}
+
+${P(X)P(Y|X)P(Z|Y)}$
+
+Key result: ${(X \perp Z | Y)}$
+
+\begin{align*}
+  & \sum_{i \in A} P(A|X)   = 1 - \textbf{sum rule} \\
+  & \sum_{i \in A} P(B|A=i) = P(A) - \textbf{marginilizing over the joint}\\
+  & P(X)P(Y|X)P(Z|Y) \\
+  & \textbf{given Y} \\
+  & P(X) * 1 * P(Z) \\
+  & \therefore (X \perp Z | Y)
+\end{align*}
+
+\subsection{Branch}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{motifs-branch}
+	\caption{Branch}
+	\label{fig:motif-branch}
+\end{figure}
+
+${P(Y)P(X|Y)P(Z|Y)}$
+
+Key result: ${(X \perp Z | Y)}$
+
+\begin{align*}
+	& \sum_{i \in A} P(A|X)   = 1 - \textbf{sum rule} \\
+	& \sum_{i \in A} P(B|A=i) = P(A) - \textbf{marginilizing over the joint}\\
+	& P(Y)P(X|Y)P(Z|Y) \\
+	& \textbf{given Y} \\
+	& 1 * P(X) * P(Z) \\
+	& \therefore (X \perp Z | Y)
+\end{align*}
+
+\subsection{Collider}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{motifs-collider}
+	\caption{Collider}
+	\label{fig:motif-collider}
+\end{figure}
+
+${P(X)P(Z)P(Y|W,Z)}$
+
+Key result: ${(X \perp Z)}$
+
+\begin{align*}
+	& \sum_{i \in A} P(A|X)   = 1 - \textbf{sum rule} \\
+	& \sum_{i \in A} P(B|A=i) = P(A) - \textbf{marginilizing over the joint}\\
+	& P(X)P(Z)P(Y|X,Z) \\
+	& \textbf{given Y} \\
+	& P(X)P(Z) \sum_{i \in Y} P(Y|X,Z) \\
+	& \therefore (X \perp Z)
+\end{align*}
+
+Conditioning on Y restricts the state space of the parents, inducing a dependency between them. This is called "explaining away". Consider an equation where ${Y = X \oplus Z}$, controlling for Y reduces the population X and Z by half and links them. The graph reveals possible dependencies. The dependency may be weak enough to not have an effect. 
+
+\section{which network fits better?}
+
+
+\section{Randomness, DELETE BEFORE SUBMIT}
+
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.25\textwidth]{assignment1-fig1}
+	\includegraphics[width=0.5\textwidth]{assignment1-fig1}
 	\caption{undirected graph}
 	\label{fig:graph}
 \end{figure}
