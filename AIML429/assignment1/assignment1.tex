@@ -1,0 +1,97 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+\addbibresource{references.bib}
+\usepackage{amsmath}  % Basic math symbols and environments
+\usepackage{amssymb}  % Extended symbol collection
+\usepackage{mathtools} % Fixes and additions to amsmath
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{csvsimple}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage{indentfirst}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\DeclareGraphicsExtensions{.png,.pdf}
+\begin{document}
+\subsection{Monty Hall favours one door}
+	
+
+\begin{align*}
+	P(H|D) &= \frac{P(H)P(D|H)}{P(D)} \\
+	\\
+    H &= C1 = \text{ car behind door \#1} \\
+    D &= M{=}2 = \text{ door \#2 chosen} \\
+    P(C1|M{=}2) &= \frac{P(C1)P(M{=}2|C1)}{P(D)} \\
+    \\
+    P(M{=}2|C1) &= 3/4\\
+    P(M{=}2|C2) &= 0\\
+    P(M{=}2|C3) &= 1\\
+    P(M{=}2) &= P(M{=}2|P)*P(C1) + P(M{=}2|C2)*P(C2) + P(M{=}2|C3)*P(C3) \\
+    P(M{=}2) &= 3/4*1/3 + 0*1/3 + 1 * 1/3  \\
+    	&= 7/12 \\
+    \\
+    P(C1|M{=}2) &= \frac{1/3 * 3/4}{7/12} \\
+    &= \frac{3/12}{7/12} \\
+    &= \frac{3}{7}
+\end{align*}	
+
+\subsection{Being Dutch Booked}
+
+\begin{align*}
+P(prick) &= 0.6 \\
+P(!prick) &= 0.6 \\
+P(prick or !prick) &= 1\\
+\end{align*}
+
+a) This breaks the "sum rule", P(prick) + p(!prick) do not sum to 1. Since there are only two events, and they are disjoint, it also breaks the "addition rule" and the "complement rule".
+
+b) 
+
+\begin{align*}
+	\textbf{P(x)} &= 0.6 = \frac{1}{D} = \frac{3}{5} \\
+	\textbf{D} &= \frac{5}{3} \\
+	\textbf{payout} &= 100 \\
+	\textbf{payout} &= \textbf{price} * D \\
+	\textbf{price} &= \frac{\textbf{payout}}{D} = \frac{100}{\frac{5}{3}} \\
+	\textbf{price} &= 60
+\end{align*}
+
+This leads to a standard dutch book. However, it does require bettors on both bets to guarantee a win.
+
+\begin{center}
+	\begin{tabular}{|c | c | c | c | c | c |}
+		\hline
+		\textbf{Bet} & \textbf{P(x)} &  \textbf{Payout} & \textbf{D} &  \textbf{Price} \\
+		\hline		
+		\textbf{pricked}  & 0.6 & 100 & $\frac{5}{3}$ &  60 \\
+		\hline		
+		\textbf{!pricked} & 0.6 & 100 & $\frac{5}{3}$ & 60 \\
+		\hline
+		 & 1.2 & 100 &  & 120 \\
+		\hline		 
+	\end{tabular}
+\end{center}
+
+c) A more subtle
+	
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.25\textwidth]{assignment1-fig1}
+	\caption{undirected graph}
+	\label{fig:graph}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.25\textwidth]{assignment1-digraph}
+	\caption{directed graph}
+	\label{fig:digraph}
+\end{figure}
+
+\end{document}
