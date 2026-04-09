@@ -284,21 +284,298 @@ Conditioning on Y restricts the state space of the parents, inducing a dependenc
 
 \section{which network fits better?}
 
+M1 is a collider ${A \rightarrow B \leftarrow C}$, M2 is a chain ${A \rightarrow B \rightarrow C}$
 
-\section{Randomness, DELETE BEFORE SUBMIT}
+a) Ratio ${B_{21}}$
 
-\begin{figure}[h]
+\begin{align*}
+	B_{21} &= P(D|M_2)/P(D|M_1) \\
+	log(P|M_1) &= -315, log(P|M_2) = -310 \\
+	log(B_{21}) &= log(P(D|M_2)) - log(P(D|M_1)) \\
+	&= -310 + 315 \\
+	&= 5 \\
+	B_{21} &= e^5 \approx 148.41 \\
+\end{align*}
+
+b) free parameters
+
+\begin{align*}
+  M1 & \rightarrow P(A)P(C)P(B|A,C)\\
+  free\_parameters &= 1 + 1 + 4 \\
+      &= 6
+\end{align*}
+
+\begin{align*}
+	M2 & \rightarrow P(A)P(B|A)P(C|B)\\
+	free\_parameters &= 1 + 2 + 2 \\
+	&= 5
+\end{align*}
+
+c) ${P(M_2)/P(M_1) = 0.01}$
+
+Using the Bayes Ratio
+
+\begin{align*}
+	\frac{P(M_2|D)}{P(M_1|D)} &= \frac{P(M_2)}{P(M_1)} \frac{P(D|M_2)}{P(D|M_1)}\\
+	&= 0.01 * 148.41
+	&= 1.48
+\end{align*}
+
+This indicates ${M_2}$ is preferred given the data.
+
+d)
+
+${M_1}$ collider, key independencies - ${(A \perp C)}$
+${M_2}$ chain, key indepdencies - ${(A \perp C | B)}$
+
+It is possible to not be detectable in the data. A set of values for the data could be constructed such that ${P(A)P(C) - P(A)P(C|B)}$ is smaller than the floating point error. In that situation, the differences aren't detectable.
+
+e) ${A \leftarrow B \rightarrow C}$ ${P(B)P(A|B)P(C|B)}$
+
+\subsection{JASON - DO THIS QUESTION}
+
+\section{Building in a Structural Assumption}
+
+${C \perp D | A)}$ has a starting graph of:
+
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=0.5\textwidth]{assignment1-fig1}
-	\caption{undirected graph}
-	\label{fig:graph}
+	\includegraphics[width=0.5\textwidth]{assumption-start}
+	\caption{assumption start}
+	\label{fig:assumption-start}
 \end{figure}
 
-\begin{figure}[h]
+Need to add B, without encoding any other assumptions. This means that B needs to  be connected to all of the nodes, with no information transiting B. This means B needs to be a collider. B cannot go between any other nodes. For example, if we put B between A and D, ${A \rightarrow B \rightarrow D}$, then ${(A \perp D | B)}$, which we don't want.
+
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=0.25\textwidth]{assignment1-digraph}
-	\caption{directed graph}
-	\label{fig:digraph}
+	\includegraphics[width=0.75\textwidth]{assumption-end}
+	\caption{assumption end}
+	\label{fig:assumption-end}
 \end{figure}
+
+\section{Belief propagation: a worked example}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.75\textwidth]{belief-factor}
+	\caption{belief factor}
+	\label{fig:belief-factor}
+\end{figure}
+
+a)
+
+\begin{itemize}
+	\item ${Z \rightarrow Fb}$ : [1,0]
+	\item ${Fb \rightarrow Y}$ : ${
+	    \begin{pmatrix}
+		2 & 0 \\
+		0 & 3 \\
+		\end{pmatrix} * [1,0] = [2, 0]}$
+	\item ${Y \rightarrow Fa}$ : [2,0] 
+	\item ${Fb \rightarrow Z}$ : ${
+	    \begin{pmatrix}
+		3 & 1 \\
+		1 & 2 \\
+ 		\end{pmatrix} * [2,0] = [6, 2]
+	}$
+\end{itemize}
+
+
+b) To nornamize, we take [6,2] and divide by 8.
+
+The normalized posterior of ${P(X|Z=0) = [ 3/4, 1/4 ]}$
+
+c) Z is unubserved.
+
+\begin{itemize}
+	\item ${Z \rightarrow Fb}$ : [1,1]
+	\item ${Fb \rightarrow Y}$ : ${
+		\begin{pmatrix}
+			2 & 0 \\
+			0 & 3 \\
+		\end{pmatrix} * [1,1] = [2, 3]}$
+	\item ${Y \rightarrow Fa}$ : [2,3] 
+	\item ${Fb \rightarrow Z}$ : ${
+		\begin{pmatrix}
+			3 & 1 \\
+			1 & 2 \\
+		\end{pmatrix} * [2,3] = [9, 10]
+	}$
+\end{itemize}
+
+P(X) is now [ 9/19, 10/19 ].
+
+\subsection{JASONCOMPLETETHIS}
+
+\section{messages through a collider}
+
+a)
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.75\textwidth]{collider-factor}
+	\caption{collider factor}
+	\label{fig:collider-factor}
+\end{figure}
+
+b)
+\begin{itemize}
+	\item y = [0,1]
+	\item z = [1,1]
+	\item ${F(z=0) * [0,1] = 
+		\begin{pmatrix}
+			4 & 2 \\
+			2 & 1 \\
+		\end{pmatrix}
+	}$ = [2,1]
+	\item ${F(z=1) * [0,1] = 
+	\begin{pmatrix}
+		1 & 3 \\
+		3 & 4 \\
+	\end{pmatrix}}$ = [3,4]
+	\item ${F(x,z) = 
+	\begin{pmatrix}
+		2 & 3 \\
+		1 & 4 \\
+	\end{pmatrix}
+    }$ * [1,1] = [5,5]	
+	\item x = [5,5] = [0.5, 0.5]
+	\item P(Y)P(X|Y) = P(Y)P(X)
+	\item ${y \perp x}$
+\end{itemize}
+
+
+c) 
+\begin{itemize}
+	\item y = [0,1]
+	\item z = [0,1]
+	\item ${F(z=0) * [0,1] = 
+		\begin{pmatrix}
+			4 & 2 \\
+			2 & 1 \\
+		\end{pmatrix}
+	}$ = [2,1]
+	\item ${F(z=1) * [0,1] = 
+		\begin{pmatrix}
+			1 & 3 \\
+			3 & 4 \\
+	\end{pmatrix}}$ = [3,4]
+	\item ${F(x,z) = 
+		\begin{pmatrix}
+		2 & 3 \\
+		1 & 4 \\
+		\end{pmatrix}
+	}$ * [0,1] = [ 3, 4]
+	\item x = [3, 4] = [ 3/7, 4/7]
+\end{itemize}
+
+The normalized P(X|Y=1, Z=1) = [ 3/7, 4/7 ]
+
+d) This is an attempt to demonstrate exlaining away using the factor diagram. There is something about reversing the message passing and showing that [1,1] will always flow through the node and come out normalizable to [1,1]. This is related to the sum rule, where sum P(A,B) = 1, but I don't have a lever into the problem.
+
+\section{meaning of messages}
+
+Since this is undirected, this isn't causality or dependency. This is information transfer from one node to another. "These events may have happened" and "based on my knowledge, your states are now restricted". They aren't "events", more state-space pruning.
+
+\section{exploring believe propagation in code}
+
+See belief\_prop.py
+
+a) prior marginal posteriors: 
+\begin{itemize}
+	\item burglar:    [0.2 0.8]
+	\item earthquake: [0.4 0.6]
+	\item alarm:      [0.48 0.52]	
+\end{itemize}
+
+b) The message from Node A to earthquake is flat [ 0.8, 0.8 ], the collider indicates that while alarm is unobserved, burglar and earthquake are independent. This indicates that the belief in earthquake can't be changed by observing burglar.
+
+c) 
+
+Earthquake:
+\begin{itemize}
+	\item before: earthquake: [0.4 0.6]
+	\item posterior: [0.48275862 0.51724138]
+\end{itemize}
+
+This has shifted the likelihood of earthquake to false. Since we know the alarm has triggered, but that there is also a burglar it is unnecessary for earthquake to be true. This allows it to shift towards false.
+
+d)  ${P(burglar | john\_called, mary\_called)}$ = 0.891
+This makes sense, since both are unlikely to be called if the alarm isn't triggered. ${P(mary|alarm=0)}$ = 0.01 and ${P(john|alarm=0)}$ = 0.05, so the likelihood of them both being called when the alarm is off is 0.01 * 0.05 = 0.0005. This information flows back up to the alarm node, indicating that it is likely the alarm has been triggered, which then flows up and increases the likelihood of both burglars and earthquakes. However, burglars are more likely
+than earthquakes in the prior posteriors.
+
+e) Gibbs sampling, we see:
+
+\begin{itemize}
+	\item burglar     : [0.1058 0.8942]
+\end{itemize}
+
+which conforms to the earlier probability to 2 decimal places.
+
+\section{complexity: why bother with BP?}
+
+a) N variables with K possible values.
+
+I keep getting confused with this one. Instead of ${X_i}$, use ${X_1}$ for simplicity.
+
+\begin{align*}
+	 P(X_1|OBS) &= \frac{P(OBS|X_1)P(X_1)}{P(OBS)} \\
+	 P(X_1) &\propto \sum_{x_2}^{k}\sum_{x_3}^{k}...\sum_{X_n}^{k}P(X_1,X_2,X_3,...,X_n)\\
+	  &= O(k^{n-1})\\
+	 P(OBS) &= \sum_{x_1}^{k}P(OBS|X_1=i)P(X_1) \\
+	 &= O(k)\\
+\end{align*}
+
+Therefore, the complexity is dominated by ${P(X_1)}$, and the complexity is ${ O(k^{n-1}}$.
+
+b) maximum in-degree d.
+
+\begin{itemize}
+	\item Assume in degree sets min in-degree as well.
+	\item Therefore, number of summations is ${n}$.
+	\item Each node has n/d values.
+\end{itemize}
+
+The following is more about the shape than expressing it generically. Additionally, there may be more things that can be done to limit the connectedness of the graph via max inward degree, but I am going for an upper bound, so assume worst case in all nodes.
+
+\begin{align*}
+	P(X_1) &\propto \sum_{x_2}^{k}..\sum_{x_{n/d}}^{k}X_a()\sum_{x_2}^{k}..\sum_{x_{n/d}}^{k}X_b()  ... \textbf{ n more iterations} \\
+	&= O(n * k^{n/d})
+\end{align*}
+
+c) N=30, K=5, d=3
+
+\begin{itemize}
+	\item ${K^{n-1} = 5^{29}}$
+	\item ${n*K^{n/d} = 30 * 5^{10} = 6 * 5^{11}}$
+\end{itemize}
+
+The factorisation reduced the complexity of the problem by a factor of ${10^18}$. The simplified problem has ~48m computations, which should be tractable.
+
+d) The tree structure reveals unused parameters in each step. This allows the independent sub-expressions to be calculated and re-used as constants by higher expressions.
+
+\section{causality}
+
+a) Backdoor Paths from X to Y
+\begin{itemize}
+	\item X<-B->Y
+\end{itemize}
+
+We would deconfound the relationship by controlling B.
+
+b) Backdoor Paths from X to Y
+\begin{itemize}
+	\item X<-A->B<-C->Y
+\end{itemize}
+
+However, this is through a collider (B), so it is naturally blocked. No controlling is required.
+
+c) Backdoor Paths from X to Y
+\begin{itemize}
+	\item X<-A->B<-C->Y
+	\item X<-B<-C->Y
+\end{itemize}
+
+The first path is naturally decounfouned by the collider at B. However, the second path is not. We can decounfound the relationship by controlling either B or C.
 
 \end{document}

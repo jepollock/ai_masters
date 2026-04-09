@@ -1,0 +1,13 @@
+graph G {
+  rankdir="LR"
+  node [shape=circle];
+  X;
+  Y;
+  Z;
+  node [shape=square];
+  A[label="Fa"];
+  B[label="Fb"];
+
+  X--A--Y--B--Z;
+}
+	
