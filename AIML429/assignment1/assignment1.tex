@@ -330,9 +330,27 @@ ${M_2}$ chain, key indepdencies - ${(A \perp C | B)}$
 
 It is possible to not be detectable in the data. A set of values for the data could be constructed such that ${P(A)P(C) - P(A)P(C|B)}$ is smaller than the floating point error. In that situation, the differences aren't detectable.
 
-e) ${A \leftarrow B \rightarrow C}$ ${P(B)P(A|B)P(C|B)}$
+Conditioning on B may expose the dependency in ${M_2}$, but it isn't guaranteed to be there.
 
-\subsection{JASON - DO THIS QUESTION}
+e) ${A \leftarrow B \rightarrow C}$, ${P(B)P(A|B)P(C|B)}$
+
+I'm not sure what to do here. Everything leads me into the weeds. I think this relates to N, the number of samples, and sampling, where 
+
+\begin{align}
+	\sum_{i=1}^{N}P(D|Measurement)\\
+\end{align}
+
+Another way to go would be to compare the number of parameters and use Occam's Razor.
+
+\begin{align*}
+  M3 & \rightarrow P(B)P(A|B)P(C|B)
+  free\_parameters &= 1 + 2 + 2 \\
+     &= 5
+\end{align*}
+
+However, the number of parameters is the same as M2, so there isn't a built-in preference.
+
+Another way would be to assume that M1, M2, M3 are the full set of models, giving ${P(D|M1)P(M1) + P(D|M2)P(M2) + P(D|M3)P(M3) = 1}$.
 
 \section{Building in a Structural Assumption}
 
@@ -406,7 +424,11 @@ c) Z is unubserved.
 
 P(X) is now [ 9/19, 10/19 ].
 
-\subsection{JASONCOMPLETETHIS}
+\begin{align*}
+	P(X) = \sum_y f_A(x,y) \sum_z f_B(y,z)
+\end{align*}
+
+I've got nothing here. It's true because it is constructed that way. ${f_A}$ and ${f_B}$ are constructed from the graph and represent the sub-expressions from the joint. However, we can't go from the factor graph back to the Bayes graph because the directions are all removed.
 
 \section{messages through a collider}
 
