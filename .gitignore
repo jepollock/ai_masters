@@ -1,6 +1,9 @@
 # OSX files, do not backup.
 .DS_Store
 
+# Paths to not recurse into.
+*.no_git
+
 253_31033_139-pycharm-support-libs
 
 # Input files, do not backup.
