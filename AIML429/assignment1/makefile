@@ -4,11 +4,13 @@ PDF_TARGETS := $(DOT_SOURCES:.dot=.pdf)
 TEX_SRCS := assignment1.tex
 TEX_TARGETS := $(TEX_SRCS:.tex=.pdf)
 
-.PHONY: all clean
+.PHONY: all clean release
 
 # Default target
 all:  $(TEX_TARGETS) $(PDF_TARGETS)
 
+release: all
+	cp assignment1.pdf pollockjaso_aiml429_asst1.pdf
 
 # MAIN LATEXMK RULE
 # -pdf tells latexmk to generate PDF directly (instead of DVI).
