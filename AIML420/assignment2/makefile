@@ -21,6 +21,3 @@ clean:
 	--ExecutePreprocessor.kernel_name=python3 \
 	--Exporter.preprocessors='["nbconvert.preprocessors.TagRemovePreprocessor"]' \
 	--to pdf
-
-
-# 	--Exporter.preprocessors='["nbconvert.preprocessors.ExecutePreprocessor","nbconvert.preprocessors.TagRemovePreprocessor"]' \
