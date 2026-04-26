@@ -1,0 +1,50 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+\addbibresource{references.bib}
+\usepackage{amsmath}  % Basic math symbols and environments
+\usepackage{amssymb}  % Extended symbol collection
+\usepackage{mathtools} % Fixes and additions to amsmath
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{csvsimple}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage{indentfirst}
+\newlength{\Lnote}
+\newcommand{\note}[1]
+{\addtolength{\leftmargini}{4em}
+	\settowidth{\Lnote}{\textbf{Note:~}}
+	\begin{quote}
+		\rule{\dimexpr\textwidth-2\leftmargini}{1pt}\\
+		\mbox{}\hspace{-\Lnote}\textbf{Note:~}%
+		#1\\[-0.5ex] 
+		\rule{\dimexpr\textwidth-2\leftmargini}{1pt}
+	\end{quote}
+	\addtolength{\leftmargini}{-4em}}
+\begin{document}
+\title{AIML427 - Big Data Assignment \#2}
+author: Jason Pollock
+email: jason@pollock.ca, pollocjaso@myvuw.ac.nz
+
+\section{Manifold Learning}
+
+\subsection{Question 1}
+I picked \url{https://archive-beta.ics.uci.edu/dataset/579/myocardial+infarction+complications}{Myocardial infarction complications}. It has 111 features, and 1,700 instances. The purpose of the dataset is to predict complications that a patient will have at admission or the first 24, 48, or 72 hours after admission.
+
+This matches the problem's requirements.
+
+I spent hours searching through NZ Government public datasets, NOAA and other official sources of data. None of them support searching by "number of features". Eventually I found the University of California Irvine website. 
+
+I have no interest in this dataset. I have no link to the underlying issues it is trying to help resolve. My interest is purely in attempting to meet the assignment's requirements.
+\subsection{Question 2 - PCA}
+
+
+
+\end{document}
