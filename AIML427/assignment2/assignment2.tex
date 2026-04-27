@@ -17,6 +17,7 @@ sorting=ynt
 \usepackage{csvsimple}
 \usepackage[colorlinks=true]{hyperref}
 \usepackage{indentfirst}
+\usepackage{listings}
 \newlength{\Lnote}
 \newcommand{\note}[1]
 {\addtolength{\leftmargini}{4em}
@@ -45,6 +46,158 @@ I spent hours searching through NZ Government public datasets, NOAA and other of
 I have no interest in this dataset. I have no link to the underlying issues it is trying to help resolve. My interest is purely in attempting to meet the assignment's requirements.
 \subsection{Question 2 - PCA}
 
+Figures are in Appendix. The top-3 eigenvalues explain only 10\% of the variance in the dataset. 20 vectors are required to explain 30\% of the variance. I found this by summing the eigenvalues and then normalising each eigenvalue by the sum. This creates a column that sums to 1, allowing me to pick the point where the eigenvalue crosses various boundaries. PC1 explains 5/177 = 3\% of the variance.
+
+\subsection{Question 3 - Classic - MDS}
+
+The incoming total variance is 176.89, and the outgoing total variance is 163.9. The transformation explains much more of the variance in the incoming dataset \(163.9/176.9 = 92.6\%\).
+
+PCA conversion appears to separate LET\_IS=1 from the other values. MDS The resulting graph does not reveal any separable components. That PCA is able to separate out the one set of values indicates that they are strongly controlled by the values in the first 3 components. It should be possible to take the eigenvectors and extract the largest/smallest coefficients as potential features to attack.
+
+While MDS reduced the dimensions, there is no apparent structure to the results, giving no further clues.
+
+\subsection{Question 4 - Modern - t-SNE}
+
+I tried to use UMap in KNime, but it required setting up a new Python Conda environment, and KNime failed to start the interpreter. I went back to the built-in python environment instead.
+
+t-sne appears to have produced some clusters. However, the clusters are all in "patient is alive". The interesting clusters, where the patient is dead, show no clustering.
+
+Which is to be expected. If the values were easily clusterable by these algorithms, there would be a sharp decrease in mortality.
+
+\subsection{Question 4 - Modern - t-SNE hyperparameter tuning}
+
+I tried the following hyperparameters:
+
+\begin{table}[H]
+	\centering
+\begin{tabular}{ | c | c | c | c | }
+	\hline
+	\textbf{Iterations} & \textbf{Perplexity} & \textbf{theta} & Results \\
+	\hline
+	1,000 & 30 & 0.5 & Minimal clustering in "alive" \\
+	\hline
+	100,000 & 30 & 0.5 & Minimal clustering in "alive" \\
+	\hline
+	50,000 & 30 & 0.5 & Minimal clustering in "alive" \\
+	\hline
+	10,000 & 30 & 0.5 & Minimal clustering in "alive" \\
+	\hline
+	10,000 & 30 & 0.01 & Minimal clustering in "alive" \\
+	\hline
+	1,000 & 100 & 0.5 & Minimal clustering in "alive" \\
+	\hline
+	1,000 & 5 & 0.5 & Minimal clustering in "alive"	\\
+	\hline
+	1,000 & 2 & 0.5 & Minimal clustering in "alive"	\\	
+	\hline
+	10,000 & 2 & 0.01 & Minimal clustering in "alive" \\			
+	\hline
+\end{tabular}
+\caption{1.5 t-SNE Hyperparameters.}
+\end{table}
 
 
+
+\section{Appendix - Figures}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{pca_eigenvalue}
+	\caption{PCA Eigenvalue Plot}
+	\label{fig:2.1}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{pca_let_is}
+	\caption{Top-3 Eigenvalues}
+	\label{fig:2.2}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{mds_scatterplot}
+	\caption{MDS Manifold to 3 Dimensions}
+	\label{fig:2.3}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{t-sne}
+	\caption{t-SNE to 3 dimensions}
+	\label{fig:2.4}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{t-sne-iter100k}
+	\caption{t-SNE 100k iterations}
+	\label{fig:2.5}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{t-sne-iter50k}
+	\caption{t-SNE 50k iterations}
+	\label{fig:2.6}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{t-sne-iter10k}
+	\caption{t-SNE 10k iterations}
+	\label{fig:2.7}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{t-sne-iter10k-theta0-01}
+	\caption{t-SNE 10k iterations, theta 0.01}
+	\label{fig:2.8}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{t-sne-iter10k-theta0-01-perplexity2}
+	\caption{t-SNE 10k iterations, theta 0.01, perplexity 2}
+	\label{fig:2.9}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{t-sne-perplexity2}
+	\caption{t-SNE perplexity 2}
+	\label{fig:2.10}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{t-sne-perplexity5}
+	\caption{t-SNE perplexity 5}
+	\label{fig:2.11}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{t-sne-perplexity100}
+	\caption{t-SNE perplexity 5}
+	\label{fig:2.12}
+\end{figure}
+
+Python code used to generate MDS and variances.
+
+\begin{lstlisting}[language=Python]
+	import knime.scripting.io as knio
+	import pandas as pd
+	import numpy as np
+	from sklearn.manifold import MDS
+		
+	input_table_1 = knio.input_tables[0].to_pandas()
+
+	n_components = 3
+	dissimilarity = 'euclidean'
+	
+	mds_manifold = MDS(n_components=n_components, dissimilarity=dissimilarity)
+	transformed = mds_manifold.fit_transform(input_table_1)
+	output_dataframe = pd.DataFrame(transformed, index=input_table_1.index)
+
+
+	incoming_variance=np.var(input_table_1, axis=0)
+	total_incoming_variance=incoming_variance.sum()
+	knio.flow_variables['total_incoming_variance'] = f"{total_incoming_variance}"
+
+	outgoing_variance=np.var(output_dataframe)
+	total_outgoing_variance = outgoing_variance.sum()
+	knio.flow_variables['total_outgoing_variance'] = f"{total_outgoing_variance}"
+
+	knio.output_tables[0] = knio.Table.from_pandas(output_dataframe)
+\end{lstlisting}
 \end{document}
