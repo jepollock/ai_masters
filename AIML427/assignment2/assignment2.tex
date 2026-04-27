@@ -70,33 +70,41 @@ I tried the following hyperparameters:
 
 \begin{table}[H]
 	\centering
-\begin{tabular}{ | c | c | c | c | }
+\begin{tabular}{ | c | c | c | }
 	\hline
-	\textbf{Iterations} & \textbf{Perplexity} & \textbf{theta} & Results \\
+	\textbf{Iterations} & \textbf{Perplexity} & \textbf{theta} \\
 	\hline
-	1,000 & 30 & 0.5 & Minimal clustering in "alive" \\
+	100 & 30 & 0.5  \\
+	\hline	
+	1,000 & 30 & 0.5  \\
 	\hline
-	100,000 & 30 & 0.5 & Minimal clustering in "alive" \\
+	10,000 & 30 & 0.5 \\
 	\hline
-	50,000 & 30 & 0.5 & Minimal clustering in "alive" \\
+	50,000 & 30 & 0.5 \\
 	\hline
-	10,000 & 30 & 0.5 & Minimal clustering in "alive" \\
+	100,000 & 30 & 0.5 \\
 	\hline
-	10,000 & 30 & 0.01 & Minimal clustering in "alive" \\
+	1,000 & 2 & 0.5	\\	
 	\hline
-	1,000 & 100 & 0.5 & Minimal clustering in "alive" \\
+	1,000 & 5 & 0.5 \\
 	\hline
-	1,000 & 5 & 0.5 & Minimal clustering in "alive"	\\
+	1,000 & 100 & 0.5 \\
 	\hline
-	1,000 & 2 & 0.5 & Minimal clustering in "alive"	\\	
+	10,000 & 30 & 0.01 \\
 	\hline
-	10,000 & 2 & 0.01 & Minimal clustering in "alive" \\			
+	10,000 & 2 & 0.01 \\			
 	\hline
 \end{tabular}
 \caption{1.5 t-SNE Hyperparameters.}
 \end{table}
 
+I tested the hyperparameter's effects by modifying a KNime workflow to run t-SNE with those values and generate an image. The images are in the Appendices.
 
+I initially chose "iterations" for the hyperparameter to tune. None of the hyperparameter values exposed any substantial structure in the dataset. They did make small clumps visible, but nothing general. The iteration count controls the number of times the points are moved down the gradient minimizing the probability distribution difference.
+
+I also varied perplexity - representing the number of neighbours to measure. While all of these varied the resulting graphs, none of them presenting anything informative.
+
+\section{Clustering}
 
 \section{Appendix - Figures}
 
@@ -143,33 +151,53 @@ I tried the following hyperparameters:
 \end{figure}
 
 \begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{t-sne-iter1k}
+	\caption{t-SNE 1k iterations}
+	\label{fig:2.8}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{t-sne-iter100}
+	\caption{t-SNE 100 iterations}
+	\label{fig:2.9}
+\end{figure}
+
+\begin{figure}[H]
 	\includegraphics[width=1.0\textwidth]{t-sne-iter10k-theta0-01}
 	\caption{t-SNE 10k iterations, theta 0.01}
-	\label{fig:2.8}
+	\label{fig:2.10}
 \end{figure}
 
 \begin{figure}[H]
 	\includegraphics[width=1.0\textwidth]{t-sne-iter10k-theta0-01-perplexity2}
 	\caption{t-SNE 10k iterations, theta 0.01, perplexity 2}
-	\label{fig:2.9}
+	\label{fig:2.11}
 \end{figure}
 
 \begin{figure}[H]
 	\includegraphics[width=1.0\textwidth]{t-sne-perplexity2}
 	\caption{t-SNE perplexity 2}
-	\label{fig:2.10}
+	\label{fig:2.12}
 \end{figure}
 
 \begin{figure}[H]
 	\includegraphics[width=1.0\textwidth]{t-sne-perplexity5}
 	\caption{t-SNE perplexity 5}
-	\label{fig:2.11}
+	\label{fig:2.13}
 \end{figure}
 
 \begin{figure}[H]
 	\includegraphics[width=1.0\textwidth]{t-sne-perplexity100}
-	\caption{t-SNE perplexity 5}
-	\label{fig:2.12}
+	\caption{t-SNE perplexity 100}
+	\label{fig:2.14}
+\end{figure}
+
+\subsection{Appendix - Code}
+
+\begin{figure}[H]
+	\includegraphics[width=1.0\textwidth]{knime-flow}
+	\caption{Question 1, KNime workflow}
+	\label{fig:2.15}
 \end{figure}
 
 Python code used to generate MDS and variances.
