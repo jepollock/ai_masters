@@ -7,7 +7,7 @@ PDF_TARGETS=$(NB_SOURCES:.ipynb=.pdf)
 all: $(PDF_TARGETS)
 
 release: all
-	tar -czf pollockjaso_aiml420_asst2.tgz -s ",^,pollockjaso_asst2/," $(NB_SOURCES) $(PDF_TARGETS)
+	tar -czf pollocjaso_aiml420_asst2.tgz -s ",^,pollockjaso_asst2/," $(NB_SOURCES) $(PDF_TARGETS) makefile README.md
 
 clean:
 	rm -f $(PDF_TARGETS)

@@ -1,7 +1,12 @@
 # How to Run.
 
-1. make sure it runs on the ECS machines
-2. add the makefile to the release
-3. tell them the data files need to be in the same directory
-4. make all
-5. read the pdfs.
+The report PDFs are generated from the Jupyter notebooks
+using make. Place the datafiles in the extracted directory and then use nbconvert to generate the reports:
+
+```
+$ make clean
+$ make all
+```
+
+This has been tested on bassett.
+
