@@ -2,14 +2,18 @@
 # MI.data - CSV
 # Note - missing data is ?
 
-.PHONY: clean data all release
+.PHONY: clean data all release part3
 
 clean:
 	-rm MI_header.csv
 	-rm MI_with_header.csv
 	-rm MI_missing_removed.csv
+	-rm *.pdf
+	-rm *.txt
 
 data: MI_with_header.csv
+
+part3: part3.txt
 
 MI_missing_removed.csv: MI.data
 	sed s'/\?//g' $< >$@
@@ -19,6 +23,9 @@ MI_header.csv: MI_field_descriptions.csv
 
 MI_with_header.csv: MI_header.csv MI_missing_removed.csv
 	cat $^ > $@
+
+part3.txt: part3.R
+	Rscript part3.R
 
 # MI_booleans_fixed.csv:
 # 	awk 'BEGIN{FS=OFS=","} \
