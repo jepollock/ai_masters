@@ -1,10 +1,15 @@
-# MI.csv - field description
-# MI.data - CSV
-# Note - missing data is ?
+NB_SOURCES=$(wildcard *.ipynb)
+R_SOURCES=$(wildcard *.R)
+KNIME_SOURCES=$(wildcard *.knwf)
+PDF_TARGETS=assignment2.pdf
+
 
 .PHONY: clean data all release part3 part2
 
 all: data part2 part3
+
+release: all
+	tar -czf pollocjaso_aiml427_asst2.tgz -s ",^,pollocjaso_asst2/," $(NB_SOURCES) $(PDF_TARGETS) makefile README.md $(R_SOURCES) $(KNIME_SOURCES)
 
 clean:
 	-rm MI_header.csv
