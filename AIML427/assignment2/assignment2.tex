@@ -18,6 +18,9 @@ sorting=ynt
 \usepackage[colorlinks=true]{hyperref}
 \usepackage{indentfirst}
 \usepackage{listings}
+
+
+
 \newlength{\Lnote}
 \newcommand{\note}[1]
 {\addtolength{\leftmargini}{4em}
@@ -43,26 +46,56 @@ This matches the problem's requirements.
 
 I spent hours searching through NZ Government public datasets, NOAA and other official sources of data. None of them support searching by "number of features". Eventually I found the University of California Irvine website. 
 
-I have no interest in this dataset. I have no link to the underlying issues it is trying to help resolve. My interest is purely in attempting to meet the assignment's requirements.
+I have no personal interest in this dataset.
+
 \subsection{Question 2 - PCA}
 
-Figures are in Appendix. The top-3 eigenvalues explain only 10\% of the variance in the dataset. 20 vectors are required to explain 30\% of the variance. I found this by summing the eigenvalues and then normalising each eigenvalue by the sum. This creates a column that sums to 1, allowing me to pick the point where the eigenvalue crosses various boundaries. PC1 explains 5/177 = 3\% of the variance.
+\begin{figure}[H]
+	\centering
+	\begin{minipage}{.6\textwidth}
+		\centering
+		\includegraphics[width=0.5\textwidth]{pca_eigenvalue}
+		\caption{PCA Eigenvalue Plot}
+		\label{fig:2.1}
+	\end{minipage}%
+	\begin{minipage}{.6\textwidth}
+		\includegraphics[width=0.5\textwidth]{pca_let_is}
+		\caption{Top-3 Eigenvalues}
+		\label{fig:2.2}
+	\end{minipage}
+\end{figure}
+
+The top-3 eigenvalues explain only 10\% of the variance in the dataset. 20 vectors are required to explain 30\% of the variance. I found this by summing the eigenvalues and then normalising each eigenvalue by the sum. This creates a column that sums to 1, allowing me to pick the point where the eigenvalue crosses various boundaries. PC1 explains 5/177 = 3\% of the variance.
 
 \subsection{Question 3 - Classic - MDS}
 
+\begin{figure}[H]
+	\includegraphics[width=0.4\textwidth]{mds_scatterplot}
+	\caption{MDS Manifold to 3 Dimensions}
+	\label{fig:2.3}
+\end{figure}
+
 The incoming total variance is 176.89, and the outgoing total variance is 163.9. The transformation explains much more of the variance in the incoming dataset \(163.9/176.9 = 92.6\%\).
 
-PCA conversion appears to separate LET\_IS=1 from the other values. MDS The resulting graph does not reveal any separable components. That PCA is able to separate out the one set of values indicates that they are strongly controlled by the values in the first 3 components. It should be possible to take the eigenvectors and extract the largest/smallest coefficients as potential features to attack.
+PCA conversion appears to separate LET\_IS=1 from the other values. The resulting graph does not reveal any separable components. That PCA is able to separate out the one set of values indicates that they are strongly controlled by the values in the first 3 components. It should be possible to take the eigenvectors and extract the largest/smallest coefficients as potential features to attack.
 
 While MDS reduced the dimensions, there is no apparent structure to the results, giving no further clues.
 
 \subsection{Question 4 - Modern - t-SNE}
 
+\begin{figure}[H]
+	\includegraphics[width=0.4\textwidth]{t-sne}
+	\caption{t-SNE to 3 dimensions}
+	\label{fig:2.4}
+\end{figure}
+
 I tried to use UMap in KNime, but it required setting up a new Python Conda environment, and KNime failed to start the interpreter. I went back to the built-in python environment instead.
 
-t-sne appears to have produced some clusters. However, the clusters are all in "patient is alive". The interesting clusters, where the patient is dead, show no clustering.
+t-SNE appears to have produced some clusters. However, the clusters are all in "patient is alive". The interesting clusters, where the patient is dead, show no clustering.
 
 Which is to be expected. If the values were easily clusterable by these algorithms, there would be a sharp decrease in mortality.
+
+I believe the algorithm is finding clusters that represent missing data in the raw dataset.
 
 \subsection{Question 4 - Modern - t-SNE hyperparameter tuning}
 
@@ -104,33 +137,115 @@ I initially chose "iterations" for the hyperparameter to tune. None of the hyper
 
 I also varied perplexity - representing the number of neighbours to measure. While all of these varied the resulting graphs, none of them presenting anything informative.
 
+Plots of each attempt are in the Appendix.
+
 \section{Clustering}
+
+\section{Regression}
+
+All the code is present in \(part3.R\). I didn't use the \(grid\) or \(thresh\) values, my search parameters produced better results. I used:
+
+\begin{align}
+	thresh &= 1e-12 \\
+	grid &= 10^{seq(3,-2,length=100)}
+\end{align}
+
+\subsection{Random Seed}
+
+The random seed was \(221\), which is set at the top of \(part3.R\). \(part3.R\) is executeable via the makefile - make part3, and creates the images and part3.txt with the output.
+
+\subsection{Training/Test Set Split}
+
+The \(model.matrix\) expression in the assignment is incorrect. It exhibits poor default behavior with nominal features and does not properly honour the train/test split.
+
+For example, it assumes that there will only ever be two genders, and that NOT Female EQUALS Male. This is incorrect. It doesn't apply when there is a train/test split, it applies even less when there is a train/production split. For example, there are 3 genders on NZ Passports. The other nominal columns are treated the same way.
+
+I used the \(recipes\) library instead. I pre-split the data into test/train datasets, created the transformation from the train dataset and applied it to the test dataset. This keeps the test data from applying a bias through the selection of values (values presence affects columns created during transformation) to the model construction.
+
+\subsection{How many predictors are there}
+
+With a correct 1-hot transformation of nominal data \(p=120\). This could be improved with better handling of Yes/No columns, converting them to boolean first, avoiding one-hotting.
+
+\subsection{Ridge Regression}
+
+\begin{figure}[H]
+	\includegraphics[width=0.25\textwidth]{ridge_model_lambda}
+	\caption{Ridge Model Lambda}
+	\label{fig:3.1}
+\end{figure}
+
+The search algorithm found the minimal lamdba at \(0.367838\).
+
+\subsection{Lasso Regression}
+
+\begin{figure}[H]
+	\includegraphics[width=0.25\textwidth]{lasso_model_lambda}
+	\caption{Lasso Model Lambda}
+	\label{fig:3.2}
+\end{figure}
+
+The search algorithm found the minimal lamdba at \(2.104904\). It selected 94 features, with 26 set to 0.
+
+\subsection{Model Comparison}
+
+Inspecting the model coefficients at the best lambda, the strongest predictors (highest coefficients) were:
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | c | c | c | }
+		\hline
+		\textbf{Algorithm} & \textbf{Factor} & \textbf{oefficient} \\
+		\hline
+		Ridge & Student\_Yes & 7.615205e+01 \\
+		\hline
+		Ridge & Student\_Yes\_x\_Married\_Yes & 8.647941e+01  \\
+		\hline
+		Ridge & Gender\_Female\_x\_Student\_Yes & 9.282591e+01 \\
+		\hline
+		Ridge & Student\_Yes\_x\_Ethnicity\_Asian & 1.565377e+02 \\
+		\hline
+		Lasso & Married\_No\_x\_Ethnicity\_Caucasian & 8.439845e+00 \\
+		\hline
+		Lasso & Student\_Yes\_x\_Married\_No & 8.704450e+00 \\
+		\hline
+		Lasso & Cards\_x\_Student\_Yes & 1.276542e+01 \\
+		\hline
+		Lasso & Gender\_X.Male\_x\_Ethnicity\_Asian & 1.851114e+01 \\		
+		\hline
+	\end{tabular}
+	\caption{Regression Error Comparison}
+\end{table}
+
+In both algorithms, Student\_Yes and Ethnicity\_Asian were strongly predictors of balance. Additionally, the top predictors were pairs of values.
+
+\subsection{Test Error Comparison}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | c | c | c | c | }
+		\hline
+		\textbf{Algorithm} & \textbf{MSE} & \textbf{RMSE} & \textbf{RSS} \\
+		\hline
+		Linear & 412998.8131 & 642.6498 & 82599762.6255 \\
+		\hline
+		Ridge & 7227.0139 & 85.0118 & 1445402.7827 \\
+		\hline
+		Lasso & 5182.4367 & 71.9891 & 1036487.3454 \\
+		\hline
+	\end{tabular}
+	\caption{Regression Error Comparison}
+\end{table}
+
+\subsection{Test Predictions}
+
+\begin{figure}[H]
+	\includegraphics[width=0.4\textwidth]{all_on_one}
+	\caption{Prediction Comparisons}
+	\label{fig:3.3}
+\end{figure}
 
 \section{Appendix - Figures}
 
-\begin{figure}[H]
-	\includegraphics[width=1.0\textwidth]{pca_eigenvalue}
-	\caption{PCA Eigenvalue Plot}
-	\label{fig:2.1}
-\end{figure}
-
-\begin{figure}[H]
-	\includegraphics[width=1.0\textwidth]{pca_let_is}
-	\caption{Top-3 Eigenvalues}
-	\label{fig:2.2}
-\end{figure}
-
-\begin{figure}[H]
-	\includegraphics[width=1.0\textwidth]{mds_scatterplot}
-	\caption{MDS Manifold to 3 Dimensions}
-	\label{fig:2.3}
-\end{figure}
-
-\begin{figure}[H]
-	\includegraphics[width=1.0\textwidth]{t-sne}
-	\caption{t-SNE to 3 dimensions}
-	\label{fig:2.4}
-\end{figure}
 
 \begin{figure}[H]
 	\includegraphics[width=1.0\textwidth]{t-sne-iter100k}

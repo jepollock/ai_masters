@@ -4,12 +4,15 @@
 
 .PHONY: clean data all release part3
 
+all: data part3 clustering.pdf
+
 clean:
 	-rm MI_header.csv
 	-rm MI_with_header.csv
 	-rm MI_missing_removed.csv
 	-rm *.pdf
 	-rm *.txt
+	-rm *.png
 
 data: MI_with_header.csv
 
@@ -26,6 +29,18 @@ MI_with_header.csv: MI_header.csv MI_missing_removed.csv
 
 part3.txt: part3.R
 	Rscript part3.R
+
+clustering.pdf: data
+
+%.pdf: %.ipynb
+	jupyter nbconvert $< \
+	--TagRemovePreprocessor.remove_cell_tags='{"remove_cell"}' \
+	--TagRemovePreprocessor.remove_all_outputs_tags='{"remove_output"}' \
+	--TagRemovePreprocessor.remove_input_tags='{"remove_input"}' \
+	--ExecutePreprocessor.kernel_name=python3 \
+	--Exporter.preprocessors='["nbconvert.preprocessors.TagRemovePreprocessor"]' \
+	--to pdf
+
 
 # MI_booleans_fixed.csv:
 # 	awk 'BEGIN{FS=OFS=","} \

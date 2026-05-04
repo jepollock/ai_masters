@@ -7,9 +7,9 @@ library(glmnet)
 
 calculate_errors <- function(ActualY, PredictedY) {
   # Get the test error
-  mse = mse(TestY, linear.predictions)
-  rmse = rmse(TestY, linear.predictions)
-  rss = sum((TestY - linear.predictions)^2)
+  mse = mse(TestY, PredictedY)
+  rmse = rmse(TestY, PredictedY)
+  rss = sum((TestY - PredictedY)^2)
   
   return(list(mse=mse, rmse=rmse, rss=rss))
 }
@@ -88,7 +88,7 @@ X.nonlinear.test <- bake(nonlinear.transform, new_data=TestCredit)
 # Ridge Regression
 alpha=0
 thresh=1e-12
-grid=10^seq(5,-2,length=100)
+grid=10^seq(3,-2,length=100)
 nfolds=10
 ridge.model = cv.glmnet(
   as.matrix(X.nonlinear.train), 
@@ -98,7 +98,6 @@ ridge.model = cv.glmnet(
   lambda=grid, 
   thresh=thresh)
 
-
 # Select Tuning parameter using cross-validation
 ridge.best_lambda = ridge.model$lambda.min
 # Get the predictions
@@ -107,7 +106,7 @@ ridge.predictions = predict(ridge.model, s=ridge.best_lambda, newx=as.matrix(X.n
 # Lasso Regression
 alpha=1
 thresh=1e-12
-grid=10^seq(5,-2,length=100)
+grid=10^seq(3,-2,length=100)
 nfolds=10
 lasso.model = cv.glmnet(
   as.matrix(X.nonlinear.train), 
@@ -116,7 +115,6 @@ lasso.model = cv.glmnet(
   nfolds=nfolds, 
   lambda=grid, 
   thresh=thresh)
-
 
 # Select Tuning parameter using cross-validation
 lasso.best_lambda = lasso.model$lambda.min
@@ -144,6 +142,13 @@ pdf("lasso_regression.pdf")
 plot(x=lasso.predictions, y=TestY, main="Lasso Regression", xlab="Predictions", ylab="Tests")
 dev.off()
 
+pdf("all_on_one.pdf")
+plot(x=linear.predictions, y=TestY, col="black", main="Prediction Comparisons", xlab="Predictions", ylab="True")
+points(x=ridge.predictions, y=TestY, col="red")
+points(x=lasso.predictions, y=TestY, col="blue")
+legend("topleft", legend=c("Linear", "Ridge", "Lasso"), col=c("black", "red", "blue"), lty=1)
+dev.off()
+
 sink("part3.txt")
 print_errors("Linear Regression", calculate_errors(TestY, linear.predictions))
 
@@ -156,4 +161,16 @@ sprintf("Lasso Regression: Best Lambda = %f", lasso.best_lambda)
 sprintf("Lasso Regression: Degrees of Freedom = %d", lasso.best_df)
 sprintf("Lasso Regression: Selected Feature Count = %d", lasso.num_selected)
 print_errors("Lasso Regression", calculate_errors(TestY, lasso.predictions))
+
+print("Ridge Coefficients")
+ridge.coeff = coef(ridge.model, s="lambda.min")
+ridge.coeff.sorted = ridge.coeff[order(ridge.coeff[,1]),]
+print(ridge.coeff.sorted)
+
+print("Lasso Coefficients")
+lasso.coeff = coef(lasso.model, s="lambda.min")
+# the sort doesn't work here for some reason
+print(lasso.coeff)
+print("sorted coefficients")
+print(lasso.coeff[order(unlist(lasso.coeff))])
 sink()
