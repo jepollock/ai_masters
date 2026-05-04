@@ -18,6 +18,7 @@ print_errors <- function(Title, Error) {
   sprintf("%s Error: {mse=%.4f, rmse=%.4f, rss=%.4f}", Title, Error$mse, Error$rmse, Error$rss)
 }
 
+# Random Seed
 # https://xkcd.com/221/ - 4 is overused
 random_seed = 221
 set.seed(random_seed)
@@ -146,7 +147,8 @@ pdf("all_on_one.pdf")
 plot(x=linear.predictions, y=TestY, col="black", main="Prediction Comparisons", xlab="Predictions", ylab="True")
 points(x=ridge.predictions, y=TestY, col="red")
 points(x=lasso.predictions, y=TestY, col="blue")
-legend("topleft", legend=c("Linear", "Ridge", "Lasso"), col=c("black", "red", "blue"), lty=1)
+lines(TestY, TestY, col="green")
+legend("topleft", legend=c("Linear", "Ridge", "Lasso", "True"), col=c("black", "red", "blue", "green"), lty=1)
 dev.off()
 
 sink("part3.txt")
@@ -161,6 +163,11 @@ sprintf("Lasso Regression: Best Lambda = %f", lasso.best_lambda)
 sprintf("Lasso Regression: Degrees of Freedom = %d", lasso.best_df)
 sprintf("Lasso Regression: Selected Feature Count = %d", lasso.num_selected)
 print_errors("Lasso Regression", calculate_errors(TestY, lasso.predictions))
+
+print("Linear Coefficients")
+linear.coeff = coef(linear.model)
+print(linear.coeff)
+print(linear.coeff[order(unlist(linear.coeff))])
 
 print("Ridge Coefficients")
 ridge.coeff = coef(ridge.model, s="lambda.min")
