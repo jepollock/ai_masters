@@ -1,0 +1,3 @@
+[submodule "AIML428/assignment2/nanoGPT"]
+	path = AIML428/assignment2/nanoGPT
+	url = https://github.com/jepollock/nanoGPT
