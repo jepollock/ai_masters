@@ -1,0 +1,40 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+\addbibresource{references.bib}
+\usepackage{amsmath}  % Basic math symbols and environments
+\usepackage{amssymb}  % Extended symbol collection
+\usepackage{mathtools} % Fixes and additions to amsmath
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{csvsimple}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage{indentfirst}
+\usepackage{listings}
+\newlength{\Lnote}
+\newcommand{\note}[1]
+{\addtolength{\leftmargini}{4em}
+	\settowidth{\Lnote}{\textbf{Note:~}}
+	\begin{quote}
+		\rule{\dimexpr\textwidth-2\leftmargini}{1pt}\\
+		\mbox{}\hspace{-\Lnote}\textbf{Note:~}%
+		#1\\[-0.5ex] 
+		\rule{\dimexpr\textwidth-2\leftmargini}{1pt}
+	\end{quote}
+	\addtolength{\leftmargini}{-4em}}
+
+\begin{document}
+  \title{AIML428 - NLP, LLMs  Assignment \#2}	
+  \author{Jason Pollock \\ pollocjaso@myvuw.ac.nz, jason@pollock.ca}
+  \maketitle
+
+\section{Manifold Learning}
+	
+\end{document}
