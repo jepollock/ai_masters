@@ -18,6 +18,11 @@ sorting=ynt
 \usepackage[colorlinks=true]{hyperref}
 \usepackage{indentfirst}
 \usepackage{listings}
+\lstset{
+	frame=single,
+	breaklines=true,
+	postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+}
 \newlength{\Lnote}
 \newcommand{\note}[1]
 {\addtolength{\leftmargini}{4em}
@@ -39,13 +44,13 @@ sorting=ynt
 \section{Task 1}
 
 \subsection{Bar chart}
-I added 2 parameters to GPT.generate, image\_filename and show\_probs.
+I added two parameters to GPT.generate, image\_filename and show\_probs.
 
 If show\_probs is true, the top-10 indices are retrieved from the probs vector. Then the function plot\_probs is called.
 
 plot\_probs decodes the indices to bytes for X, and creates a default colour vector. Then it finds the values in indices that have the chosen idx using pytorch, extracting the nonzero element from that tensor. It sets that colour to red.
 
-It then plots the graph to <image\_filename>\_[0-9].png.
+It then plots the graph to \textless image\_filename\textgreater\_[0-9].png.
 
 Given the prompt "I live in" it generated: " a diverse community". In the images below, we can see the second token was not in the top-10.
 
@@ -71,7 +76,7 @@ Given the prompt "I live in" it generated: " a diverse community". In the images
 
 \subsection{Temperature}
 
-Temperature affects the logits before softmax, making them smaller. This is then passed to softmax, which uses \(e^Z_i\) as the numerator. Making the exponent smaller will make the numerator smaller.
+Temperature affects the logits before softmax, making them smaller. This is then passed to softmax, which uses \(e^{Z_i}\) as the numerator. Making the exponent smaller will make the numerator smaller.
 
 However, the effect is not equal to all values. If temperature is small, larger logits will grow, causing the numerator to grow exponentially.
 
@@ -86,7 +91,7 @@ For example:
 
 As we can see, \(Z_1\) is increased by 9, while \(Z_2\) is only increased by 4.5. This then flows through to the exponent, making \(Z_1\) ~240x more likely than \(Z_2\) instead of the previous 10x.
 
-So, temperatures \textless 1 shift the distribution towards the dominant value, while those \textgreater 1 flatten the distribution, allowing tail values to be chosen.
+Temperatures \textless 1 shift the distribution towards the dominant value, while those \textgreater 1 flatten the distribution, allowing tail values to be chosen.
 
 For example, prompting with "I live in", with different temperatures produces:
 
@@ -112,7 +117,7 @@ For example, prompting with "I live in", with different temperatures produces:
 
 \subsection{Response Probability}
 
-GPT.generate was modified to extract the probability of the selected token and convert it to ln space. It was then added to an accumulator, eventually being returned as a tuple with the idx tensor.
+GPT.generate was modified to extract the selected token's probability and convert it to ln space. It was then added to an accumulator, eventually being returned as a tuple with the idx tensor.
 
 Prompting with "I live in", and temperature = 0.0001, it generates "I live in a small town in the" with a total probability = 1.0. This makes sense since the temperature will shrink the distribution down to 1 value, which is always chosen.
 
@@ -120,7 +125,7 @@ Prompting with "I live in", and temperature = 0.0001, it generates "I live in a 
 
 The code currently assumes that there is only a single vector in the tensor being sampled. 
 
-It is important to use log space for these computations because multiplying small numbers makes them really small in a hurry. In floating point math, as the mantissa gets smaller, the standard allows the CPU to become less accurate. Remaining in log space allows sum to be used, staying away from the CPU's inaccuracy.
+It is important to use log space for these computations because multiplying small numbers makes them really small in a hurry. The floating point standard allows a CPU to become less accurate as the mantissa gets smaller. Remaining in log space allows sum to be used, staying away from the CPU's inaccuracy.
 
 \subsection{Fixed Response}
 
@@ -146,13 +151,13 @@ Prompting with "I live in" has the following results:
 	\caption{1.5 t-SNE Hyperparameters.}
 \end{table}
 
-As the length of the fixed string increases, the likelihood it was generated decreases.
+As the fixed string's length increases, the likelihood it was generated decreases.
 
 \section{Task 2}
 
-\subsection(eval.py)
+\subsection{eval.py}
 
-I created an eval.py with an "eval" method in it. There doesn't seem to be a lot of value of having a method called eval which contains all of the code in eval.py. The code is a copy of sample.py, with the json file loaded and then iterating over the list within the ctx context. It makes sure to modify response to ensure is starts with a " ". Without start/stop tokens, GPT2 will require proper whitespace between the request and response.
+I created an eval.py with an "eval" method in it. There doesn't seem to be a lot of value in having a method called eval which contains all of the code in eval.py. The code is a copy of sample.py, with the json file loaded and then iterating over the list within the ctx context. It ensures the response starts with a " ". Without start/stop tokens, GPT2 requires proper whitespace between the request and response.
 
 The eval function is the only code run once the model is loaded. It is the same code as sample.py, only retrieving the equivalent to "start" and "fixed\_response" from the json file. I have added additional features:
 
@@ -163,9 +168,31 @@ The eval function is the only code run once the model is loaded. It is the same 
 	\item ability to detect and report tool use
 \end{itemize}
 
+Samples of the request/response pairs:
+
+\begin{lstlisting}[language=C]
+[
+  {
+    "prompt":"Janet\u2019s ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers' market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers' market?",
+    "response":"Janet sells 16 - 3 - 4 = <<16-3-4=9>>9 duck eggs a day.\nShe makes 9 * 2 = $<<9*2=18>>18 every day at the farmer\u2019s market.\n",
+    "expected_value":"18"
+  },
+  {
+    "prompt":"A robe takes 2 bolts of blue fiber and half that much white fiber.  How many bolts in total does it take?",
+    "response":"It takes 2\/2=<<2\/2=1>>1 bolt of white fiber\nSo the total amount of fabric is 2+1=<<2+1=3>>3 bolts of fabric\n",
+    "expected_value":"3"
+  },
+  {
+    "prompt":"Josh decides to try flipping a house.  He buys a house for $80,000 and then puts in $50,000 in repairs.  This increased the value of the house by 150%.  How much profit did he make?",
+    "response":"The cost of the house and repairs came out to 80,000+50,000=$<<80000+50000=130000>>130,000\nHe increased the value of the house by 80,000*1.5=<<80000*1.5=120000>>120,000\nSo the new value of the house is 120,000+80,000=$<<120000+80000=200000>>200,000\nSo he made a profit of 200,000-130,000=$<<200000-130000=70000>>70,000\n",
+    "expected_value":"70000"
+  }
+]
+\end{lstlisting}
+
 \subsection{Dataset}
 
-I chose \href{https://huggingface.co/datasets/openai/gsm8k}{GSM8K}. I wanted to explore how to improve the mathematical ability of a basic GPT. It contains request/response pairs representing Grade 8 (13 year olds) math problems.
+I chose \href{https://huggingface.co/datasets/openai/gsm8k}{GSM8K}. I wanted to explore how to improve the mathematical ability of a basic GPT. It contains request/response pairs representing Grade 8 (13 year old children) math problems.
 
 Conversion is done using "make task5\_dataset" which invokes "convert.py". Convert.py takes the parquet files placed in the "data" directory and converts them to json, splitting the training data into train and validation sets. The test set is written to the main directory.
 
@@ -173,13 +200,13 @@ Conversion is done using "make task5\_dataset" which invokes "convert.py". Conve
 
 I finetuned for 200 iterations, that was a good time/value tradeoff. Longer runs will probably improve results.
 
-eval.py is reporting the log probability for each response, which is the basic check, but only really useful when looking at individual respones. I am also reporting the average perplexity over the total evaluation set. Average perplexity should allow us to more rapidly compare model passes, and is easy to calculate from the log probabilities. Since my dataset is math problems, I also check if the response contains the expected answer, and whether or not it contains the tool call tokens from the training set.
+eval.py reports the log probability for each response, which is the basic check, but only really useful when looking at individual respones. It also reports the average perplexity over the total evaluation set. Average perplexity should allow us to more rapidly compare model passes, and is easy to calculate from the log probabilities. Since my dataset is math problems, I also check if the expected answer is contained in the response, and whether or not tool call tokens are also present.
 
 These values only make sense when the response is unfixed. To get non-0 probabilities, the top-k value had to be increased to 50k. Otherwise, the fixed response probability was always 0.
 
 I run the evaluation 4 times, fixed response, unfixed response on both the original and finetuned models.
 
-The results were:
+The results were (INV indicates invalid due to fixed respoonse):
 
 \begin{table}[H]
 	\centering
@@ -255,5 +282,7 @@ This is implemented by wrapping the idx handling logic in GPT.generate.
 \end{lstlisting}
 
 For example, prompting "I live in" generates " a diverse community" with a total probability of 6.28e-5. However, using a beam\_width of 5 and max\_new\_tokens = 3, we get " a small town" with a much higher probability of 8.1e-2, 1000 times more likely than the original. If we increase beam\_width to 100, it doesn't find a better option.
+
+The result should be compared to lowering the temperature on the prompt. There are extensions that rank beams based on edit distance as well as probability, with a preference to search diverse beams.
 
 \end{document}
