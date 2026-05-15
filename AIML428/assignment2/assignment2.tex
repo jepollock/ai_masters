@@ -35,6 +35,225 @@ sorting=ynt
   \author{Jason Pollock \\ pollocjaso@myvuw.ac.nz, jason@pollock.ca}
   \maketitle
 
-\section{Manifold Learning}
-	
+\pagebreak
+\section{Task 1}
+
+\subsection{Bar chart}
+I added 2 parameters to GPT.generate, image\_filename and show\_probs.
+
+If show\_probs is true, the top-10 indices are retrieved from the probs vector. Then the function plot\_probs is called.
+
+plot\_probs decodes the indices to bytes for X, and creates a default colour vector. Then it finds the values in indices that have the chosen idx using pytorch, extracting the nonzero element from that tensor. It sets that colour to red.
+
+It then plots the graph to <image\_filename>\_[0-9].png.
+
+Given the prompt "I live in" it generated: " a diverse community". In the images below, we can see the second token was not in the top-10.
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}{.6\textwidth}
+		\centering
+		\includegraphics[width=1.0\textwidth]{nanoGPT/task1_example_0}
+		\caption{First token}
+		\label{fig:1.1}
+	\end{minipage}%
+	\begin{minipage}{.6\textwidth}
+		\includegraphics[width=1.0\textwidth]{nanoGPT/task1_example_1}
+		\caption{Second token}
+		\label{fig:1.2}
+	\end{minipage}
+	\begin{minipage}{.6\textwidth}
+		\includegraphics[width=1.0\textwidth]{nanoGPT/task1_example_2}
+		\caption{Third token}
+		\label{fig:1.3}
+\end{minipage}
+\end{figure}
+
+\subsection{Temperature}
+
+Temperature affects the logits before softmax, making them smaller. This is then passed to softmax, which uses \(e^Z_i\) as the numerator. Making the exponent smaller will make the numerator smaller.
+
+However, the effect is not equal to all values. If temperature is small, larger logits will grow, causing the numerator to grow exponentially.
+
+For example:
+\begin{align}
+	temperature &= 0.1 \\
+	Z_1 &= 1 \\
+	Z_2 &= 0.5 \\
+	Z_t1 &= 1/0.1 = 10 \\
+	Z_t2 &= 0.5/0.1 = 5 
+\end{align}
+
+As we can see, \(Z_1\) is increased by 9, while \(Z_2\) is only increased by 4.5. This then flows through to the exponent, making \(Z_1\) ~240x more likely than \(Z_2\) instead of the previous 10x.
+
+So, temperatures \textless 1 shift the distribution towards the dominant value, while those \textgreater 1 flatten the distribution, allowing tail values to be chosen.
+
+For example, prompting with "I live in", with different temperatures produces:
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}{.6\textwidth}
+		\centering
+		\includegraphics[width=1.0\textwidth]{nanoGPT/task2_temp_0_01_0}
+		\caption{T=0.01}
+		\label{fig:1.4}
+	\end{minipage}%
+	\begin{minipage}{.6\textwidth}
+		\includegraphics[width=1.0\textwidth]{nanoGPT/task2_temp_1_0_0}
+		\caption{T=1.0}
+		\label{fig:1.5}
+	\end{minipage}
+	\begin{minipage}{.6\textwidth}
+		\includegraphics[width=1.0\textwidth]{nanoGPT/task2_temp_10_0_0}
+		\caption{T=10.0}
+		\label{fig:1.6}
+	\end{minipage}
+\end{figure}
+
+\subsection{Response Probability}
+
+GPT.generate was modified to extract the probability of the selected token and convert it to ln space. It was then added to an accumulator, eventually being returned as a tuple with the idx tensor.
+
+Prompting with "I live in", and temperature = 0.0001, it generates "I live in a small town in the" with a total probability = 1.0. This makes sense since the temperature will shrink the distribution down to 1 value, which is always chosen.
+
+\subsection{Probability Assumptions}
+
+The code currently assumes that there is only a single vector in the tensor being sampled. 
+
+It is important to use log space for these computations because multiplying small numbers makes them really small in a hurry. In floating point math, as the mantissa gets smaller, the standard allows the CPU to become less accurate. Remaining in log space allows sum to be used, staying away from the CPU's inaccuracy.
+
+\subsection{Fixed Response}
+
+sample.py converts the fixed\_response string to a list of tokens. This is passed to GPT.generate. GPT.generate runs as before until just after it samples idx\_next from probs. At that point, idx\_next is popped off the front of fixed\_response\_ids. Then the code from before runs unchanged, calculating the log probability.
+
+Prompting with "I live in" has the following results:
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | l | r | }
+		\hline
+		\textbf{Fixed Response} & \textbf{Probability} \\
+		\hline
+		" the" & 0.257346 \\
+		\hline
+		" the capital" & 0.000483 \\
+		\hline
+		" the capital of" & 0.000115 \\
+		\hline
+		" the capital of New Zealand" & 3.22e-07 \\
+		\hline
+	\end{tabular}
+	\caption{1.5 t-SNE Hyperparameters.}
+\end{table}
+
+As the length of the fixed string increases, the likelihood it was generated decreases.
+
+\section{Task 2}
+
+\subsection(eval.py)
+
+I created an eval.py with an "eval" method in it. There doesn't seem to be a lot of value of having a method called eval which contains all of the code in eval.py. The code is a copy of sample.py, with the json file loaded and then iterating over the list within the ctx context. It makes sure to modify response to ensure is starts with a " ". Without start/stop tokens, GPT2 will require proper whitespace between the request and response.
+
+The eval function is the only code run once the model is loaded. It is the same code as sample.py, only retrieving the equivalent to "start" and "fixed\_response" from the json file. I have added additional features:
+
+\begin{itemize}
+	\item the ability to ignore the response, while using it to control the max\_new\_tokens
+	\item support for start/stop tokens provided by the training pass
+	\item ability to detect and report proper calculations
+	\item ability to detect and report tool use
+\end{itemize}
+
+\subsection{Dataset}
+
+I chose \href{https://huggingface.co/datasets/openai/gsm8k}{GSM8K}. I wanted to explore how to improve the mathematical ability of a basic GPT. It contains request/response pairs representing Grade 8 (13 year olds) math problems.
+
+Conversion is done using "make task5\_dataset" which invokes "convert.py". Convert.py takes the parquet files placed in the "data" directory and converts them to json, splitting the training data into train and validation sets. The test set is written to the main directory.
+
+\subsection{Finetuning}
+
+I finetuned for 200 iterations, that was a good time/value tradeoff. Longer runs will probably improve results.
+
+eval.py is reporting the log probability for each response, which is the basic check, but only really useful when looking at individual respones. I am also reporting the average perplexity over the total evaluation set. Average perplexity should allow us to more rapidly compare model passes, and is easy to calculate from the log probabilities. Since my dataset is math problems, I also check if the response contains the expected answer, and whether or not it contains the tool call tokens from the training set.
+
+These values only make sense when the response is unfixed. To get non-0 probabilities, the top-k value had to be increased to 50k. Otherwise, the fixed response probability was always 0.
+
+I run the evaluation 4 times, fixed response, unfixed response on both the original and finetuned models.
+
+The results were:
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | c | c | c | c |  }
+		\hline
+		\textbf{Model Run} & \textbf{Avg Perplexity} & \textbf{P(Correct)} & \textbf{P(Tokens)} \\
+		\hline
+		gpt2-large, fixed & 4.49 & INV & INV \\
+		\hline
+		gpt2-large, unfixed & 3.39 & 0.2 & 0.0 \\
+		\hline
+		gsm8k, fixed & 2.383 & INV & INV \\
+		\hline
+		gsm8k, unfixed & 1.59 & 0.1 & 1.0 \\
+		\hline
+	\end{tabular}
+	\caption{1.5 t-SNE Hyperparameters.}
+\end{table}
+
+The perplexity of the responses dropped, indicating they were more likely to be produced post-fine tuning. However, the model produced more correct answers before fine tuning. The fine tuned model did consistently produce the tool call tokens "\textless\textless" and "\textgreater\textgreater".
+
+I was surprised that the model learned a start token 'response:', a stop token '\textbackslash n,' in addition to the tool call tokens.
+
+Two additional evaluation methods use a judge. The experiment would A/B test the unfixed responses from both models, with the judge choosing between them. The judge could start as another LLM, or a set of humans. This would use ELO scoring, choosing between several possible models.
+
+\section{Task 3}
+
+\subsection{Exploring PyTorch and Train.py}
+
+There was a dramatic difference in performance between train.py and eval.py. train.py was able to perform 200 passes in around 90 minutes. A test pass using 20\% of the data would have taken 10+ hours. This is an investigation of how batch processing could be added to GPT.generate.
+
+Going through the data handling in train.py, it is loading the tokens and instantly converting each token to 64 bits. This is done to avoid integer overflows when calculating intermediate weights. While the int16 might be sufficient, it doesn't leave much headroom with 50k tokens.
+
+NanoGPT uses torch.stack to setup block processing. However, torch.stack assumes that all tensors have the same length. This does not immediately allow batch processing if the requests or responses are of variable length. It will be possible to perform beam search using this - the beams all grow at the same rate and have the same prefix. However batch processing of multiple different prompts doesn't match stack's requirements.
+
+We can achieve this by padding the prompts and using a custom attention mask, but this isn't currently implemented in nanoGPT. 
+
+Another method would be to start with the tensors at the shortest common string, and then use the fixed\_response logic to grow the pruned prompts until they are all of the same length and able to grow together. However that wouldn't do proper probability calculations, and it would either generate too many or not enough tokens.
+
+A better algorithm would be:
+
+\begin{lstlisting}
+	incoming_idx[] - list of tensors for each prompt
+	set idx to the tensors in incoming_idx with the min length.
+	begin generation loop
+	  as idx grows, add in longer prompts
+	  track each idx's generated length, remove when max_tokens reached, or on stop_token
+	when idx is empty, return the completed idx tensors
+\end{lstlisting}
+
+That variant would calculate the accumulated log probability properly as well.
+
+The PyTorch Module's use of \_\_call\_\_ makes it hard to track through the code. Generally IDE's like PyCharm help a lot in moving through the codebase. It is interesting to see "design for extension" being used in \_call\_impl with the hook interfaces.
+
+\subsection{Extending NanoGPT}
+
+The extension is Beam Search. It will allow the model to search through the space, possibly avoiding high probability starting tokens that result in low probability full responses.
+
+This is implemented by wrapping the idx handling logic in GPT.generate. 
+
+\begin{lstlisting}
+	while there are more tokens to generate
+	  current_beams - beams to expand, initially start
+	  foreach beam in current_beams
+	    sample beam_width tokens without replacement
+	    append beam_width new beams to expanded_beams
+	  done
+	  sort expanded_beams
+	  replace current_beams with beam_width best beams
+	    from expanded_beams 
+	done
+	return the idx and probability from the best beam in current_beams
+\end{lstlisting}
+
+For example, prompting "I live in" generates " a diverse community" with a total probability of 6.28e-5. However, using a beam\_width of 5 and max\_new\_tokens = 3, we get " a small town" with a much higher probability of 8.1e-2, 1000 times more likely than the original. If we increase beam\_width to 100, it doesn't find a better option.
+
 \end{document}
