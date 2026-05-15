@@ -230,7 +230,11 @@ The perplexity of the responses dropped, indicating they were more likely to be 
 
 I was surprised that the model learned a start token 'response:', a stop token '\textbackslash n,' in addition to the tool call tokens.
 
-Two additional evaluation methods use a judge. The experiment would A/B test the unfixed responses from both models, with the judge choosing between them. The judge could start as another LLM, or a set of humans. This would use ELO scoring, choosing between several possible models.
+Finetuning reduced perpexlity substantially, reducing it by about 50\% in all tests. Perplexity is the geometric mean of the token probabilities. It indicates the models average performance, and how likely it is to generate the entire corpus.
+
+Two additional evaluation methods would use a judge. The experiment would A/B test the unfixed responses from both models, with the judge choosing between them. One uses a LLM as a judge, the other a set of humans. This would use ELO scoring, choosing between several possible responses. These would then be fed back to the model for additional fine tuning.
+
+LLM judging is reinforcement learning. Human judging is reinforcement learning from human feedback.
 
 \section{Task 3}
 
@@ -240,7 +244,7 @@ There was a dramatic difference in performance between train.py and eval.py. tra
 
 Going through the data handling in train.py, it is loading the tokens and instantly converting each token to 64 bits. This is done to avoid integer overflows when calculating intermediate weights. While the int16 might be sufficient, it doesn't leave much headroom with 50k tokens.
 
-NanoGPT uses torch.stack to setup block processing. However, torch.stack assumes that all tensors have the same length. This does not immediately allow batch processing if the requests or responses are of variable length. It will be possible to perform beam search using this - the beams all grow at the same rate and have the same prefix. However batch processing of multiple different prompts doesn't match stack's requirements.
+NanoGPT uses torch.stack to setup block processing. However, torch.stack assumes that all tensors have the same length. If the requests or responses are of variable length, they cannot be stacked and cannot be batched. It will be possible to perform beam search using this - the beams all grow at the same rate and have the same prefix. However batch processing of multiple different prompts doesn't match stack's requirements.
 
 We can achieve this by padding the prompts and using a custom attention mask, but this isn't currently implemented in nanoGPT. 
 
@@ -259,11 +263,11 @@ A better algorithm would be:
 
 That variant would calculate the accumulated log probability properly as well.
 
-The PyTorch Module's use of \_\_call\_\_ makes it hard to track through the code. Generally IDE's like PyCharm help a lot in moving through the codebase. It is interesting to see "design for extension" being used in \_call\_impl with the hook interfaces.
+The PyTorch Module's use of \_\_call\_\_ makes it hard to track through the code. Generally IDE's like PyCharm help a lot in moving through the codebase. It was interesting to see "design for extension" being used in \_call\_impl through the hook interfaces.
 
 \subsection{Extending NanoGPT}
 
-The extension is Beam Search. It will allow the model to search through the space, possibly avoiding high probability starting tokens that result in low probability full responses.
+The extension is Beam Search. It will allow the model to search through the token space, possibly avoiding high probability starting tokens that result in low probability full responses.
 
 This is implemented by wrapping the idx handling logic in GPT.generate. 
 
@@ -283,6 +287,10 @@ This is implemented by wrapping the idx handling logic in GPT.generate.
 
 For example, prompting "I live in" generates " a diverse community" with a total probability of 6.28e-5. However, using a beam\_width of 5 and max\_new\_tokens = 3, we get " a small town" with a much higher probability of 8.1e-2, 1000 times more likely than the original. If we increase beam\_width to 100, it doesn't find a better option.
 
-The result should be compared to lowering the temperature on the prompt. There are extensions that rank beams based on edit distance as well as probability, with a preference to search diverse beams.
+The result should be compared to lowering the temperature on the prompt. There are extensions that rank beams based on edit distance as well as total probability, with a preference for diverse beams.
+
+\section{Appendix - AI Usage}
+
+I did not use any AI generated code.
 
 \end{document}
