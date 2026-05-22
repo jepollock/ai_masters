@@ -1,0 +1,81 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+\addbibresource{references.bib}
+\usepackage{amsmath}  % Basic math symbols and environments
+\usepackage{amssymb}  % Extended symbol collection
+\usepackage{mathtools} % Fixes and additions to amsmath
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{csvsimple}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage{indentfirst}
+\usepackage{listings}
+\lstset{
+	frame=single,
+	breaklines=true,
+	postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+}
+\newlength{\Lnote}
+\newcommand{\note}[1]
+{\addtolength{\leftmargini}{4em}
+	\settowidth{\Lnote}{\textbf{Note:~}}
+	\begin{quote}
+		\rule{\dimexpr\textwidth-2\leftmargini}{1pt}\\
+		\mbox{}\hspace{-\Lnote}\textbf{Note:~}%
+		#1\\[-0.5ex] 
+		\rule{\dimexpr\textwidth-2\leftmargini}{1pt}
+	\end{quote}
+	\addtolength{\leftmargini}{-4em}}
+
+\begin{document}
+	\title{AIML420 - Intro to AI  Assignment \#3}	
+	\author{Jason Pollock \\ pollocjaso@myvuw.ac.nz, jason@pollock.ca}
+	\maketitle
+	
+	\pagebreak
+\section{Part 1: Job Shop Scheduling}
+
+\subsection{Question 1}
+
+Process Order:
+
+choose(a,b) : a > b ? a : b. If "a" is after "b", it is the earliest start time, otherwise the earliest start time is b.
+
+The requirement that the timestamps are in t1...tn order is an additional constraint, keeping later jobs from starting early even thoug the machine is available.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | c | c | c | c | c | }
+	\hline
+	\textbf{Operation} & \textbf{Machine} & \textbf{Start Time} & \textbf{End Time} & \textbf{Earliest Start Time} \\
+	\hline
+	O11 & M1 & t1 = max(0,0) & t1+50  & 0 \\
+	\hline
+	O21 & M2 & t2 = max(t1+1, 10, 0) & t2+30 & 10 \\
+	\hline
+	O31 & M1 & t3 = max(t2+1, 20, t1+50) & t3+40 & 50 \\
+	\hline
+	O12 & M2 & t4 = max(t3+1, t1+50, t2+30) & t4+25 & 51 \\
+	\hline
+	O22 & M1 & t5 = max(t4+1, t2+30, t3+40) & t5+35 & 90 \\
+	\hline
+	O32 & M2 & t6 = max(t5+1, t3+40, t4+25) & t6+20 & 91 \\
+	\hline	
+	\end{tabular}
+\caption{1.1 specified process order.}
+\end{table}
+
+
+\section{Appendix - AI Usage}
+
+I did not use any AI generated code.
+
+\end{document}	
