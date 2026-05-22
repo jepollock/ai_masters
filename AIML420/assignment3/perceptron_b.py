@@ -10,13 +10,13 @@ from IPython.display import display
 from IPython.display import Markdown
 
 
-LEARNING_RATE = 1
+LEARNING_RATE = 0.01
 # https://xkcd.com/221/ - 4 is overused, as is 42
 RANDOM_SEED = 221
 random.seed(a=RANDOM_SEED)
 
-DATA_SEA_SYN_TRAIN_CSV = "data/SeaSynTrain.csv"
-DATA_SEA_SYN_TEST_CSV = "data/SeaSynTest.csv"
+RING_SYN_TRAIN_CSV = "data/RingSynTrain.csv"
+RING_SYN_TEST_CSV = "data/RingSynTest.csv"
 
 enable_debug = False
 
@@ -34,7 +34,7 @@ def plot(df=None, title=None, filename=None):
     #cmap="tab10"
     cmap=mpl.colors.ListedColormap(cluster_colours)
     norm=mpl.colors.BoundaryNorm(range(0,len(cluster_colours)), cmap.N)
-    ax.scatter(df.attrib1, df.attrib2, df.attrib3, c=df.Class, s=20, cmap=cmap, norm=norm)
+    ax.scatter(df.feature1, df.feature2, c=df.Class, s=20, cmap=cmap, norm=norm)
     plt.title(title)
     plt.grid(True)
     plt.tight_layout()
@@ -44,15 +44,15 @@ def plot(df=None, title=None, filename=None):
     plt.show()
 
 # Data format:
-# attrib1, attrib2, attrib3, class
-# attrib* => float
+# feature1, feature2, class
+# x* => float
 # class -> {0,1}
 training_pd = None
 test_pd = None
-if os.path.exists(DATA_SEA_SYN_TRAIN_CSV) and os.path.exists(DATA_SEA_SYN_TEST_CSV):
+if os.path.exists(RING_SYN_TRAIN_CSV) and os.path.exists(RING_SYN_TEST_CSV):
     print("Loading datasets...")
-    training_pd = pd.read_csv(DATA_SEA_SYN_TRAIN_CSV)
-    test_pd = pd.read_csv(DATA_SEA_SYN_TEST_CSV)
+    training_pd = pd.read_csv(RING_SYN_TRAIN_CSV)
+    test_pd = pd.read_csv(RING_SYN_TEST_CSV)
     # example_pd = pd.read_csv("example.csv")
 
 # assert that the data was loaded.
@@ -80,48 +80,44 @@ class Perceptron:
         self.weight_bias = random.uniform(-1,1)
         self.weight_a = random.uniform(-1,1)
         self.weight_b = random.uniform(-1,1)
-        self.weight_c = random.uniform(-1,1)
         self.learning_rate = learning_rate
 
     def _activation(self, value):
         return self.activation_fn(value)
 
-    def apply(self, a,b,c):
+    def apply(self, a,b):
         return self._activation(-1 * self.weight_bias +
                                 a * self.weight_a +
-                                b * self.weight_b +
-                                c * self.weight_c)
+                                b * self.weight_b)
 
-    def learn(self, a, b, c, y_true, y_pred):
+    def learn(self, a, b, y_true, y_pred):
         error = y_true - y_pred
         debug(f"error: {error}")
-        debug(f"before: ({self.weight_bias}, {self.weight_a}, {self.weight_b}, {self.weight_c})")
+        debug(f"before: ({self.weight_bias}, {self.weight_a}, {self.weight_b})")
         self.weight_bias = update_weight(self.weight_bias, error, self.learning_rate, -1)
         self.weight_a = update_weight(self.weight_a, error, self.learning_rate, a)
         self.weight_b = update_weight(self.weight_b, error, self.learning_rate, b)
-        self.weight_c = update_weight(self.weight_c, error, self.learning_rate, c)
-        debug(f"after:  ({self.weight_bias}, {self.weight_a}, {self.weight_b}, {self.weight_c})")
+        debug(f"after:  ({self.weight_bias}, {self.weight_a}, {self.weight_b})")
 
 def train(dataset, perceptron, num_epochs):
     for i in range(num_epochs):
         for row in dataset.itertuples():
             y_true = row.Class
-            a = row.attrib1
-            b = row.attrib2
-            c = row.attrib3
-            y_pred = perceptron.apply(a, b, c)
-            perceptron.learn(a, b, c, y_true, y_pred)
+            a = row.feature1
+            b = row.feature2
+            y_pred = perceptron.apply(a, b)
+            perceptron.learn(a, b, y_true, y_pred)
 
 def test(dataset, perceptron):
     correct = 0
     for row in dataset.itertuples():
         y_true = row.Class
-        y_pred = perceptron.apply(row.attrib1, row.attrib2, row.attrib3)
+        y_pred = perceptron.apply(row.feature2, row.feature2)
         if y_true == y_pred:
             correct += 1
     return correct / dataset.shape[0]
 
-print("Perceptron, Linear Activation")
+print("Perceptron, Non-Linearly Seperable")
 print("Epoch, Accuracy")
 perceptron = Perceptron(lambda value: threshold(value), LEARNING_RATE)
 total_epochs = 0
@@ -131,8 +127,5 @@ for num_epochs in (1, 5, 10, 15, 20, 50, 60, 80, 100, 120, 150, 200):
     total_epochs += num_epochs
     print(f"{num_epochs}, test:{test_accuracy}")
 
-# Increasing the number of epochs improves the accuracy until the training overfits the training data.
-# Then the performance starts to degrade. The choice of learning rate has an impact on the performance
-# as well. A training rate of 1 worked remarkably well, finding the best performance at 10 epochs, and
-# then instantly overfitting. 0.1 was very unreliable, it had a hard time working down to the error minimum.
-# 0.01 worked well, showing gradual improvement until it started overfitting.
+# It didn't improve. The performance didn't seem to improve on the dataset at all. It got stuck at 0.66333 and
+# didn't really move from there.
