@@ -1,0 +1,24 @@
+# Define the source and target files
+NB_SOURCES=$(wildcard *.ipynb)
+PY_SOURCES=$(wildcard *.py)
+PDF_TARGETS=$(NB_SOURCES:.ipynb=.pdf)
+
+.PHONY: all clean release
+
+all: $(PDF_TARGETS)
+
+release: all
+	tar -czf pollocjaso_aiml420_asst3.tgz -s ",^,pollocjaso_asst3/," $(NB_SOURCES) $(PDF_TARGETS) $(PY_TARGETS) makefile
+
+clean:
+	rm -f $(PDF_TARGETS) pollocjaso_aiml420_asst2.tgz
+
+
+%.pdf: %.ipynb
+	jupyter nbconvert $< \
+	--TagRemovePreprocessor.remove_cell_tags='{"remove_cell"}' \
+	--TagRemovePreprocessor.remove_all_outputs_tags='{"remove_output"}' \
+	--TagRemovePreprocessor.remove_input_tags='{"remove_input"}' \
+	--ExecutePreprocessor.kernel_name=python3 \
+	--Exporter.preprocessors='["nbconvert.preprocessors.TagRemovePreprocessor"]' \
+	--to pdf
