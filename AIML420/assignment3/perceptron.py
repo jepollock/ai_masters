@@ -6,11 +6,8 @@ import random
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
-from IPython.display import display
-from IPython.display import Markdown
 
-
-LEARNING_RATE = 1
+LEARNING_RATE = 0.01
 # https://xkcd.com/221/ - 4 is overused, as is 42
 RANDOM_SEED = 221
 random.seed(a=RANDOM_SEED)
@@ -23,6 +20,39 @@ enable_debug = False
 def debug(string):
     if (enable_debug):
         print(string)
+
+def report(string):
+    print(string)
+
+class Table:
+    def header(self, *fields):
+        self.doc = "|"
+        for field in fields:
+            self.doc += f" {field} |"
+        self.doc += "\n"
+        self.doc += "|"
+        for field in fields:
+            self.doc += " --- |"
+        self.doc += "\n"
+        return self
+
+    def __init__(self):
+        self.doc = ""
+
+    def row(self, *values):
+        self.doc += "|"
+        for value in values:
+            self.doc += f" {value} |"
+        self.doc += "\n"
+        return self
+
+    def report(self):
+        report(self.doc)
+
+def start_table():
+    table = Table()
+    table.header("Model", "Epoch", "Accuracy")
+    return table
 
 cluster_colours = ['red', 'green', 'blue', 'orange', 'violet', 'yellow']
 
@@ -58,10 +88,16 @@ if os.path.exists(DATA_SEA_SYN_TRAIN_CSV) and os.path.exists(DATA_SEA_SYN_TEST_C
 # assert that the data was loaded.
 debug(training_pd)
 debug(test_pd)
-# Fix python keyword collision
-training_pd["Class"] = training_pd["class"]
-test_pd["Class"] = training_pd["class"]
 
+# Fix python keyword collision
+def fixClass(df):
+    df["Class"] = df["class"]
+    df.drop(columns="class", inplace=True)
+
+fixClass(training_pd)
+fixClass(test_pd)
+
+# example is used for testing, and, or, nand.
 # example_pd["Class"] = example_pd["class"]
 # plot(test_pd, "test data", "test")
 # plot(training_pd, "train data", "train")
@@ -121,18 +157,15 @@ def test(dataset, perceptron):
             correct += 1
     return correct / dataset.shape[0]
 
-print("Perceptron, Linear Activation")
-print("Epoch, Accuracy")
+print("Perceptron, Linearly Separable")
+
+table = start_table()
 perceptron = Perceptron(lambda value: threshold(value), LEARNING_RATE)
 total_epochs = 0
-for num_epochs in (1, 5, 10, 15, 20, 50, 60, 80, 100, 120, 150, 200):
-    train(training_pd, perceptron, num_epochs)
+for report_epochs in (1, 5, 10, 15, 20, 50, 60, 80, 100, 120, 150, 200):
+    train(training_pd, perceptron, report_epochs - total_epochs)
     test_accuracy = test(test_pd, perceptron)
-    total_epochs += num_epochs
-    print(f"{num_epochs}, test:{test_accuracy}")
+    total_epochs = report_epochs
+    table.row("Separable", report_epochs, test_accuracy)
 
-# Increasing the number of epochs improves the accuracy until the training overfits the training data.
-# Then the performance starts to degrade. The choice of learning rate has an impact on the performance
-# as well. A training rate of 1 worked remarkably well, finding the best performance at 10 epochs, and
-# then instantly overfitting. 0.1 was very unreliable, it had a hard time working down to the error minimum.
-# 0.01 worked well, showing gradual improvement until it started overfitting.
+table.report()

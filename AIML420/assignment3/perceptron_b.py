@@ -6,11 +6,9 @@ import random
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
-from IPython.display import display
-from IPython.display import Markdown
 
 
-LEARNING_RATE = 0.01
+LEARNING_RATE = 0.001
 # https://xkcd.com/221/ - 4 is overused, as is 42
 RANDOM_SEED = 221
 random.seed(a=RANDOM_SEED)
@@ -19,10 +17,44 @@ RING_SYN_TRAIN_CSV = "data/RingSynTrain.csv"
 RING_SYN_TEST_CSV = "data/RingSynTest.csv"
 
 enable_debug = False
+enable_plot = False
 
 def debug(string):
     if (enable_debug):
         print(string)
+
+def report(string):
+    print(string)
+
+class Table:
+    def header(self, *fields):
+        self.doc = "|"
+        for field in fields:
+            self.doc += f" {field} |"
+        self.doc += "\n"
+        self.doc += "|"
+        for field in fields:
+            self.doc += " --- |"
+        self.doc += "\n"
+        return self
+
+    def __init__(self):
+        self.doc = ""
+
+    def row(self, *values):
+        self.doc += "|"
+        for value in values:
+            self.doc += f" {value} |"
+        self.doc += "\n"
+        return self
+
+    def report(self):
+        report(self.doc)
+
+def start_table():
+    table = Table()
+    table.header("Model", "Epoch", "Accuracy")
+    return table
 
 cluster_colours = ['red', 'green', 'blue', 'orange', 'violet', 'yellow']
 
@@ -55,16 +87,22 @@ if os.path.exists(RING_SYN_TRAIN_CSV) and os.path.exists(RING_SYN_TEST_CSV):
     test_pd = pd.read_csv(RING_SYN_TEST_CSV)
     # example_pd = pd.read_csv("example.csv")
 
+# Fix python keyword collision
+def fixClass(df):
+    df["Class"] = df["class"]
+    df.drop(columns="class", inplace=True)
+
+fixClass(training_pd)
+fixClass(test_pd)
+# fixClass(example_pd)
+
 # assert that the data was loaded.
 debug(training_pd)
 debug(test_pd)
-# Fix python keyword collision
-training_pd["Class"] = training_pd["class"]
-test_pd["Class"] = training_pd["class"]
 
-# example_pd["Class"] = example_pd["class"]
-# plot(test_pd, "test data", "test")
-# plot(training_pd, "train data", "train")
+if enable_plot:
+    plot(test_pd, "test data", "test")
+    plot(training_pd, "train data", "train")
 
 # Keep the activation functions separate from the Perceptron.
 def threshold(value):
@@ -117,15 +155,19 @@ def test(dataset, perceptron):
             correct += 1
     return correct / dataset.shape[0]
 
-print("Perceptron, Non-Linearly Seperable")
-print("Epoch, Accuracy")
+
+print("Perceptron, Non-Linearly Separable")
+
+table = start_table()
 perceptron = Perceptron(lambda value: threshold(value), LEARNING_RATE)
 total_epochs = 0
-for num_epochs in (1, 5, 10, 15, 20, 50, 60, 80, 100, 120, 150, 200):
-    train(training_pd, perceptron, num_epochs)
+for report_epochs in (1, 5, 10, 15, 20, 50, 60, 80, 100, 120, 150, 200):
+    train(training_pd, perceptron, report_epochs - total_epochs)
     test_accuracy = test(test_pd, perceptron)
-    total_epochs += num_epochs
-    print(f"{num_epochs}, test:{test_accuracy}")
+    total_epochs = report_epochs
+    table.row("Non-Separable", report_epochs, test_accuracy)
+
+table.report()
 
 # It didn't improve. The performance didn't seem to improve on the dataset at all. It got stuck at 0.66333 and
 # didn't really move from there.
