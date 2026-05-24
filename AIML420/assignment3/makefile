@@ -2,16 +2,17 @@
 NB_SOURCES=$(wildcard *.ipynb)
 PY_SOURCES=$(wildcard *.py)
 PDF_TARGETS=$(NB_SOURCES:.ipynb=.pdf)
+RELEASE_NAME=pollocjaso_aiml420_asst3
 
 .PHONY: all clean release
 
 all: $(PDF_TARGETS)
 
 release: all
-	tar -czf pollocjaso_aiml420_asst3.tgz -s ",^,pollocjaso_asst3/," $(NB_SOURCES) $(PDF_TARGETS) $(PY_TARGETS) makefile
+	tar -czf $(RELEASE_NAME).tgz -s ",^,$(RELEASE_NAME)/," $(NB_SOURCES) $(PDF_TARGETS) $(PY_SOURCES) makefile data perceptron README.md
 
 clean:
-	rm -f $(PDF_TARGETS) pollocjaso_aiml420_asst2.tgz
+	rm -f $(PDF_TARGETS) $(RELEASE_NAME).tgz
 
 
 %.pdf: %.ipynb
@@ -22,3 +23,17 @@ clean:
 	--ExecutePreprocessor.kernel_name=python3 \
 	--Exporter.preprocessors='["nbconvert.preprocessors.TagRemovePreprocessor"]' \
 	--to pdf
+
+part1: all
+
+part2_taska:
+	./perceptron
+
+part2_taskb:
+	./perceptron_b.py
+
+part2_taskc:
+	./multi_layer_perceptron.py --max_epoch=300
+
+part2_taskd:
+	./multi_layer_perceptron.py

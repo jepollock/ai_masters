@@ -10,8 +10,8 @@ ACTIVATION_FUNCTIONS = ['identity', 'logistic', 'tanh', 'relu']
 
 MAX_EPOCH = 800
 HIDDEN_LAYER_SIZES = [(100,), (5,2), (10,5), (16,8), (20,10), (20,10,5), (5,10)]
-# 3 - 94%.
-# 40 - 95%
+# 3 neurons  - 94%.
+# 40 neurons - 95%
 LEARNING_RATE = 0.01
 # https://xkcd.com/221/ - 4 is overused, as is 42
 RANDOM_SEED = 221
@@ -33,6 +33,7 @@ def toXy(df):
 def report(string):
     print(string)
 
+# Markdown table accumulator
 class Table:
     def header(self, *fields):
         self.doc = "|"
@@ -98,6 +99,8 @@ fixClass(test_pd)
 (X_test, y_test) = toXy(test_pd)
 debug(f"y_train shape: {y_train.shape}")
 
+# For each network topology, test all of the activation functions
+# Use the one epoch value.
 table = start_table()
 for sizes in HIDDEN_LAYER_SIZES:
     for activation_function in ACTIVATION_FUNCTIONS:

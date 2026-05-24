@@ -26,6 +26,7 @@ def debug(string):
 def report(string):
     print(string)
 
+# Markdown table accumulator
 class Table:
     def header(self, *fields):
         self.doc = "|"
@@ -111,6 +112,7 @@ def threshold(value):
 def update_weight(weight, error, learning_rate, input):
     return weight + learning_rate * error * input
 
+# Perceptron supporting 2 inputs.
 class Perceptron:
     def __init__(self, activation_fn, learning_rate):
         self.doc=""
@@ -161,6 +163,8 @@ print("Perceptron, Non-Linearly Separable")
 table = start_table()
 perceptron = Perceptron(lambda value: threshold(value), LEARNING_RATE)
 total_epochs = 0
+# Run a single training pass, stopping at epoch checkpoints and reporting
+# test accuracy.
 for report_epochs in (1, 5, 10, 15, 20, 50, 60, 80, 100, 120, 150, 200):
     train(training_pd, perceptron, report_epochs - total_epochs)
     test_accuracy = test(test_pd, perceptron)
@@ -168,6 +172,3 @@ for report_epochs in (1, 5, 10, 15, 20, 50, 60, 80, 100, 120, 150, 200):
     table.row("Non-Separable", report_epochs, test_accuracy)
 
 table.report()
-
-# It didn't improve. The performance didn't seem to improve on the dataset at all. It got stuck at 0.66333 and
-# didn't really move from there.
