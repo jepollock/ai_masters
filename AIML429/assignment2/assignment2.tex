@@ -30,6 +30,26 @@ sorting=ynt
 
 \subsection{a - plots}
 
+\begin{figure}[H]
+	\centering
+	\begin{minipage}{.6\textwidth}
+		\centering
+		\includegraphics[width=1.0\textwidth]{rejection_c_1}
+		\caption{c = 1}
+		\label{fig:1.1}
+	\end{minipage}%
+	\begin{minipage}{.6\textwidth}
+		\includegraphics[width=1.0\textwidth]{rejection_c_10}
+		\caption{c = 10}
+		\label{fig:1.2}
+	\end{minipage}
+	\begin{minipage}{.6\textwidth}
+		\includegraphics[width=1.0\textwidth]{rejection_c_3pi}
+		\caption{c = $(3 * \sqrt{2 \pi})$}
+		\label{fig:1.3}
+	\end{minipage}
+\end{figure}
+
 % Wolfram equation:
 % {e^(-x^(2)/2)* (2 + sin(3 x + 1)), (1/(sqrt(2pi)))*e^(-x^2/2)} 
 
@@ -51,28 +71,6 @@ An exact solution for C is possible:
 	c &>= 3 \sqrt{2\pi}
 \end{align}
 
-\begin{figure}[H]
-	\centering
-	\begin{minipage}{.6\textwidth}
-		\centering
-		\includegraphics[width=1.0\textwidth]{rejection_c_1}
-		\caption{c = 1}
-		\label{fig:1.1}
-	\end{minipage}%
-	\begin{minipage}{.6\textwidth}
-		\includegraphics[width=1.0\textwidth]{rejection_c_10}
-		\caption{c = 10}
-		\label{fig:1.2}
-	\end{minipage}
-	\begin{minipage}{.6\textwidth}
-		\includegraphics[width=1.0\textwidth]{rejection_c_3pi}
-		\caption{c = $(3 * \sqrt{2 \pi})$}
-		\label{fig:1.3}
-	\end{minipage}
-\end{figure}
-
-
-
 \subsection{b - sigma = 100}
 
 % Wolfram equation
@@ -92,6 +90,9 @@ While N(0,1) seems very similar to p(x) from x = 5, N(0,100) has a wide band, ev
 \subsection{c - expectation}
 
 See sampling.ipnyb.
+
+Measurement: 0.571, number of measurements = 100203, number of samples = 376000.
+
 
 The expectation was measured as 0.57. Since Option 1 has a fixed payout of 1, it has a higher expectated value and should be preferred.
 
@@ -138,9 +139,9 @@ The condition is detailed balance:
 	\Pi(x) &= \Pi(A) = 5/10 \\
 	 A_{x->x'} &= min(1, \frac{p(x')}{p(x)}) = min(1, (3/10)/(5/10)) = 3/5 \\
 	 A_{x'->x} &= min(1, \frac{p(x)}{p(x')}) = min(1, (5/10)/(3/10)) = 1 \\
-	 \frac{M_{x->x'}}{M_{x'->x}} &= \frac{A_{x->x'}}{A_{x'->x}} 
-	 &= (3/5)/1 = 3/5
-	 &=  \frac{\Pi(B)}{\Pi(A)} = (3/10)/(5/10) = 3/5
+	 \frac{M_{x->x'}}{M_{x'->x}} &= \frac{A_{x->x'}}{A_{x'->x}}  \\
+	 &= (3/5)/1 = 3/5 \\
+	 &=  \frac{\Pi(B)}{\Pi(A)} = (3/10)/(5/10) = 3/5 \\
 \end{align}
 
 \section{About "flat" priors}
@@ -195,24 +196,253 @@ The difference in the peak shows up in the mean - 4/6 = 20/30 vs 3.5/5 = 21/30.
 	\label{fig:3.6}
 \end{figure}
 
+With the large number of flips, the difference in the two distributions disappears, becoming random sampling variation (it changes with each run). As the number of data points increases, the starting variation has less impact.
+
+\subsection{reflect}
+
+This shows us that all starting positions have some impact on the early probability distribution. We always have a prior. The question will be how soon will the data overwhelm the starting assumption and produce a good signal.
+
+Too little data can be analyzed, but care should be taken, perhaps modelling as two similar distributions and looking at their difference. Then the difference can be discounted in analysis as the result of the prior.
+
 \section{naïve Bayes: when does Bayesian inference stay tractable?}
+
+\subsection{Case B}
+
+\begin{align}
+	P(X|\theta) &= \sum_{k=0}^{1}P(X,Y=k|\theta) \\
+	&= \sum_{k=0}^{1}P(Y=K|\theta)P(x|Y=k,\theta) \\
+	&= P(Y=0|\theta)P(x|Y=0,\theta) + P(Y=1|\theta)P(x|Y=1,\theta)
+\end{align}
+using parameter substitution from above, and Bernoulli for simplification
+\begin{align}
+	&= (1-\theta_y)\theta_{X|0}^x(1-\theta_{X|0})^{1-x} + \theta_y\theta_{X|1}^x(1-\theta_{X|1})^{1-x} \\
+\end{align}
+
+\begin{align}
+	P(D|\theta) &= \prod_{n} P(x^n|\theta) \\
+		&=  \prod_{n} ((1-\theta_y)\theta_{X|0}^x(1-\theta_{X|0})^{1-x} + \theta_y\theta_{X|1}^x(1-\theta_{X|1})^{1-x}) \\
+\end{align}
+
+\subsection{Why it doesn't factorise}
+
+Since we are marginalising, we are introducing a sum, the product of sums ends up being a combination of the individual components. It looks like the Binomial Theorem in expansion.
+
+\subsection{What breaking?}
+
+The distribution is no longer a conjugate distribution. Conjugacy means the posterior is the same class of function as the prior. The marginalisation changes the class of the posterior.
+
+I don't know how many symmetric posterior nodes a K-class model has.
 
 \section{Bayesian linear regression}
 
+I don't know why one distribution is variance, and the other is precision. I'm assuming they are actually different variances.
+
+
+\begin{align}
+	Normal &= \frac{1}{\sqrt{2 \pi \sigma}}e^{-1/2(\frac{x-\mu}{\sigma})^2}\\
+	e_i &= \frac{1}{\sqrt{2 \pi 1/2}} e^{-1/2 * (x^2/1/4)} \\
+	&= \frac{1}{\sqrt{\pi}}e^{{-2x^2}} \\
+	w &= \frac{1}{\sqrt{2 \pi 2}} e^{-1/2 (x^2)/4} \\
+	&= \frac{1}{\sqrt{4\pi}} e^{-x^2/8}
+\end{align}
+
+\begin{align}
+	P(D|w) = \prod_{n=1}^{N} N(y_n | wx_n,  1/\tau)
+\end{align}
+
+\subsection{log $p(w|D)$}
+
+I can't figure this one out. The course notes refer back to Archer fish, but everything is skipping steps and I get lost. Murphy doesn't seem to help.
+
+I know that a linear transformation of a Gaussian is a Gaussian, but I don't know how to go from y = wx+e to the probability form.
+
+p(w) is the prior, which we are given, I'm unclear how to calculate $p(D|w)$, which I would then take the log of both sides.
+
+\begin{align}
+	p(w|D) &\propto p(D|w)p(w) \\
+	log(p(w|d) &\propto log(p(D|w) + log(p(w) \\
+	&\propto log(p(D|w) + log(N(0,\tau^2)
+\end{align}
+
+\subsection{posterior mean calculation}
+
+\begin{align}
+	\sigma_w^{-2}  &= \tau^{-2} + \sigma^{-2} \sum_{i} x_i^2 \\
+	\mu_w &= \sigma_w^2 \sigma^{-2} \sum_{i} x_iy_i
+\end{align}
+
+Calculate $\mu_w$ and $\sigma_w^{2}$
+
+\begin{align}
+	\sigma_w^{-2}  &= \tau^{-2} + \sigma^{-2} \sum_{i} x_i^2 \\
+	               &= 1/4 + 4 \sum_{i} x_i^2 \\
+	x_i &= (1,2,3), \sum x_i^2 = 14 \\
+	\sigma_w^{-2} &= 1/4 + 4 * 14\\
+	&= 56.25 \\
+	\sigma_w &=  1/\sqrt{56.25} \\
+	&= 2/15
+\end{align}
+
+\begin{align}
+	\mu_w &= \sigma_w^2 \sigma^{-2} \sum_{i} x_iy_i \\
+		  &= (1/56.25)	4 \sum x_iy_i \\
+	x_i &= (1,2,3) \\		  
+	y_i &= (2.1, 3.9, 6.2) \\
+	x_iy_i &= (2.1, 7.8, 18.6) \\
+	\sum x_iy_i &= 2.1+7.8+18.6 = 57/2 \\
+	\mu_w  &= 4/56.25 * 57/2 \\
+	       &= 2 * 57/56.25 \\
+	       &= 1.0133... \\
+\end{align}
+
+\subsection{Predictive Distribution}
+
+Since the variance is changing with the square of $x^*$, the prediction is more uncertain at $x^* = 10$. This is desireable as the new value is further away from the existing data points. The observations clamp the distribution at those points, and the uncertainty increases between them.
+
+\subsection{MLE estimate of w}
+
+\begin{align}
+	\mu_w &= \sigma_w^2 \sigma^{-2} \sum_{i} x_iy_i \\
+\textbf{substitute for $\sigma_w^2$} \\
+	      &= \frac{\sigma^{-2} \sum_{i} x_iy_i}{\tau^{-2} + \sigma^{-2} \sum_{i} x_i^2}
+\end{align}
+
+Comparing with the least-squares estimate, the same terms are in the same place, with the differences in the prior and the error distributions. As $\tau^2$ goes to infinity, $\tau$ impact on the mean approaches 0, the $\sigma$s cancel and we are left with the MLE. As n goes to infinity, The summations will start to dominate $\tau$ and again the $\sigma$s cancel out and we are left with the MLE.
+
+
 \section{Bayesian neural network via Metroplis sampling}
+
+Removed.
 
 \section{sigmoids: generative vs. discriminative}
 
+Looking at the graphs for generative vs discriminative models, see vs do is important.
+
+In the generative model, there is a path from $x_n$ on the training side to $X^*$. This indicates that $\theta$ is a confounder. The descriminative model has no confounder path from the training data to $x^*$. Even if the Xn's are IID, the previous data will limit the possibilities in the next batch of samples, driving them back to the Gaussian's mean.
+
+They should approach each other as the sample count increases, but the discriminative model will work better with small sample counts. 
+
 \section{EuroSCORE: upstream or downstream?}
+
+\subsection{Model A}
+
+A logistic regression implies the signmoid function. There is a linear combination of the inputs and then $\sigma(z)$ is used to map that line to [0..1]. I am going to assume that the prior for P(H=1) is the same as the prior for P(H=2).
+
+\begin{align}
+	P(H=1 | U_{1..5},S_1,S_2) &= \sigma(z) = \frac{1}{1+e^{-z}} \\
+	z &= w_0 + \sum_{i=1}^{5}w_iUi + \sum_{j=1}^{2}v_jS_j \\
+	P(H=0 | U_{1..5},S_1,S_2) &= 1-\sigma(z) \\	
+	&= 1- \frac{1}{1+e^{-z}} \\
+	&= \frac{1+e^{-z} -1}{1+e^{-z}} \\
+	&= \frac{e^{-z}}{1+e^{-z}} \\
+	\frac{P(H=1)|...)}{P(H=0|...)} &= \frac{\frac{1}{1+e^{-z}}}{\frac{e^{-z}}{1+e^{-z}}} \\
+	&= \frac{1}{e^{-z}}\\
+	log(\frac{P(H1|...)}{P(H0|...)}) &= log(\frac{1}{e^{-z}}) \\
+	&= z \\
+	&= w_0 + \sum_{i=1}^{5}w_iUi + \sum_{j=1}^{2}v_jS_j \\
+\end{align}
+
+\subsection{Model B}
+
+\begin{align}
+	P(A,B|C) &= P(B|C)P(A|B,C) \\
+	P(A|B,C) &= \frac{P(A,B|C)}{P(B|C)} \\
+	P(H=1|U_{1..5},S_1,S_2) &= \frac{P(H=1,S1,S2|U_{1..5})}{P(S_1,S_2|U_{1..5})} \\
+	&= \frac{P(S1,S2|H=1,U_{1..5})P(H=1|U_{1..5})}{P(S_1,S_2|U_{1..5})} \\
+	&= P(H=1|U_{1..5}) \frac{P(S1,S2|H=1,U_{1..5})}{P(S_1,S_2|U_{1..5})} \\
+	\frac{P(H=1 | U_{1..5},S_1,S_2)}{P(H=0 | U_{1..5},S_1,S_2)} &=  \frac{P(H=1|U_{1..5})}{P(H=0|U_{1..5})} \frac{\frac{P(S1,S2|H=1,U_{1..5})}{P(S_1,S_2|U_{1..5})}}{\frac{P(S1,S2|H=0,U_{1..5})}{P(S_1,S_2|U_{1..5})}} \\
+	&=  \frac{P(H=1|U_{1..5})}{P(H=0|U_{1..5})} \frac{P(S1,S2|H=1,U_{1..5})}{P(S1,S2|H=0,U_{1..5})} \\
+\end{align}
+
+The graph states that S1 and S2 are conditionally independent on H.
+\begin{align}
+	P(S1,S2|H=1,U_{1..5}) &= P(S1|H)P(S2|H) \\
+	\frac{P(H=1 | U_{1..5},S_1,S_2)}{P(H=0 | U_{1..5},S_1,S_2)} &=  \frac{P(H=1|U_{1..5})}{P(H=0|U_{1..5})} \frac{P(S1|H=1)P(S2|H=1)}{P(S1|H=0)P(S2|H=0)} \\
+	\frac{P(H=1)|...)}{P(H=0|...)} &= log( \frac{P(H=1|U_{1..5})}{P(H=0|U_{1..5})} \frac{P(S1|H=1)P(S2|H=1)}{P(S1|H=0)P(S2|H=0)}) \\
+	&=  w_0 + \sum_{i=1}^{5}w_iUi + log(\frac{P(S1|H=1)P(S2|H=1)}{P(S1|H=0)P(S2|H=0)})) \\
+	&= w_0 + \sum_{i=1}^{5}w_iUi + log(\frac{P(S1|H=1)}{P(S1|H=0}) + log(\frac{P(S2|H=1)}{P(S2|H=0}) \\
+	&=  w_0 + \sum_{i=1}^{5}w_iUi + \sum_{j=1}^{2} log(\frac{P(Sj|H=1)}{P(Sj|H=0)}) \\
+\end{align}
+
+\subsection{Comparison}
+
+They are different in form. One becomes a linear combination of the weights, and becomes simpler to predict. Since model B reflects the causal structure, it informs the experiments and what should be controlled - the downstream variables shouldn't be part of the control, controlling for them would affect the probability of H.
 
 \section{EuroSCORE: how are the parameters learnt?}
 
+\subsection{EM Algorithm - i}
+
+Our goal with the r equation is to obtain something easy to work with, where we can count the frequencies and update. Pull out u, since most things are conditionally independent of it. S, D are conditionally independent given H, and H is dependent on u.
+
+EM is calculating the most likelihood that the point belongs in that class. It assumes the values are correct and then calculates the assignments.
+
+\begin{align}
+	P(A|B,C) &= \frac{P(A,B|C)}{P(B|C)} \\
+	r^n &= P(H=1|u^n,s^n,d^n) \\
+	&= \frac{P(H=1,s^n,d^n|u^n)}{P(s^n,d^n,u^n)} \\
+	P(H=1,s^n,d^n|u^n) &= P(H=1|u^n)P(s^n,d^n|H=1,u^n) \\
+	&= P(H=1|u^n)P(s^n|H=1)P(d^n|H=1) \\
+	P(s^n,d^n|u^n) &= \sum_{i=0,1} P(H=i,s^nd^n|u^n) \\
+	&= \sum_{i={0,1}} P(H=i|u^n)P(s^n|H=i)P(d^n|H=i)	\\
+	r^n &= \frac{ P(H=1|u^n)P(s^n|H=1)P(d^n|H=1)}{\sum_{i={0,1}} P(H=i|u^n)P(s^n|H=i)P(d^n|H=i)} \\
+\end{align}
+
+The terms could likely be simplified more if taken to log space, since $P(H=1|u^n)$ is logistic.
+
+\subsection{EM Algorithm - ii}
+
+The $P(H=k|u^n)$ distributions can be updated using linear regression, generating a new set of model parameters. I'm not sure how $P(S_j|H=k)$ is updated. I'm guessing counting like Naive Bayes, where a strong linkage between H and d allows d to replace H in those equations.
+
+The creation of new parameters is generative, the use of the responsibility function is discriminative.
+
+\subsection{Different kinds of learning}
+
+$P(H=1|u^n)$ resembles logistic regression, while the downstream sections appear like Naive Bayes. The downstream values are all conditionally independent given H, matching that problem. We saw that upstream was logistic in Question 8.
+
+
 \section{KL divergence}
+
+"mode seeking" and "mode covering" are related to the importance of choosing which direction to run KL divergence. KL divergence is asymmetric, so the choice of P and Q are important to how it behaves.
+
+\begin{align}
+	\sum_{k=1}^{K}P_klog(\frac{p_k}{q_k}) \\
+\end{align}
+
+ If q is the approximating model, which we are driving towards the true model p, this is the "forwards direction". In this direction, to keep the value from becoming infinite, q must be >0 wherever p > 0. If q becomes small somewhere p isn't, the log will go infinite, resulting in the sum being infinite. The act of minimizing KL divergence will keep this from happening. This is called mode-covering.
+ 
+The "reverse direction" is when q is the true model. In that situation, q must be zero where p is zero. Otherwise, we again see an infinite value as p->0 where q does not approach zero. This is called zero-seeking.
+
+Both are describing what minimizing KL divergence will do to the approximating model, drive it towards or away from zero.
+
+
+In the reverse direction, driving q->0 will sacrifice low frequency classes to obtain accuracy elsewhere, like lasso regression. Using the forward direction, it will evenly distribute the error across all classes.
 
 \section{ELBO}
 
+\subsection{M-Step}
 
-	
+If q(z) is constant, integrals over q(z) terms will be constant. Attempt to isolate q(z) terms from the rest of the integral.
 
+\begin{align}
+	\mathbb{L}(Q, \theta) &= \mathbb{E}_q(z)(log(\frac{p(x,z|\theta)}{q(z)}))\\
+	&= \int q(z)log(\frac{p(x,z|\theta)}{q(z)})dz \\
+	&= \int q(z)(log(p(x,z|\theta)) - log(q(z))dz \\
+	&= \int q(z)log(p(x,z|\theta)) - \int q(z)log(q(z)) \\
+	&propto  \int q(z)log(p(x,z|\theta))
+\end{align}
+
+\subsection{Gaussian Mixture E-step}
+
+In a Gaussian Mixture model e-step, the rnc is calculated. This is the vector containing the responsibilities (which sum to 1) for each point, doing a soft-assignment to clusters.
+
+In this framework, x is the observation, z is the class weights, and $\theta$ represents the model's mean and covariance. However, I don't see how to reformulate the ELBO from the rnc equation:
+
+\begin{align}
+	r_nc = \frac{\pi_cN(x_n|m_c,\Sigma_c)}{\sum_{j}N(x_n|m_j,\Sigma_j)} \\
+\end{align}
+
+\subsection{Richer Models}
+
+If every k in a model includes an independent error term, adding more terms adds to the total error. If the term brings less information than error, the errors will compound and the entire model will end up as noise.
 
 \end{document}
