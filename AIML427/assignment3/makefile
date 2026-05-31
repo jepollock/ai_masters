@@ -56,7 +56,7 @@ spark_check:
 #
 # make local_SparkWordCount ENV=local - run the script locally.
 
-SCRIPT_NAME=RTI
+SCRIPT_NAME=rt_iot2022
 SCRIPT_BIN_DIR=$(SCRIPT_NAME)/bin
 SCRIPT_INPUT_DIR=$(SCRIPT_NAME)/input
 SCRIPT_OUTPUT_DIR=$(SCRIPT_NAME)/output
@@ -70,6 +70,8 @@ SCRIPT_HDFS_SENTINEL=$(SCRIPT_SENTINEL_DIR)/hdfs_path_created
 SCRIPT_PUSH_SENTINEL=$(SCRIPT_SENTINEL_DIR)/input_pushed
 SCRIPT_SENTINELS=$(SCRIPT_HDFS_SENTINEL) $(SCRIPT_PUSH_SENTINEL)
 SCRIPT_CHECK=$(SCRIPT_NAME)_check
+
+SCRIPT_NUM_RUNS=1
 
 $(SCRIPT_CHECK): | kinit_check hdfs_check spark_check
 
@@ -99,6 +101,7 @@ local_$(SCRIPT_NAME):
 	spark-submit --name $(SCRIPT_NAME) \
 	  --master "local[*]"  \
 	  $(SCRIPT_EXEC) \
+	  $(SCRIPT_NUM_RUNS) \
 	  $(SCRIPT_INPUT) \
 	  $(SCRIPT_STAGED_OUTPUT_DIR) 2>&1
 	cp $(SCRIPT_STAGED_OUTPUT_DIR)/* $(SCRIPT_OUTPUT_DIR)
@@ -135,6 +138,7 @@ $(SCRIPT_OUTPUT): $(SCRIPT_HDFS_SENTINEL) $(SCRIPT_PUSH_SENTINEL) $(SCRIPT_EXEC)
 	  --conf spark.yarn.appMasterEnv.JAVA_HOME=/usr/lib/jvm/java-21-openjdk \
 	  --conf spark.executorEnv.JAVA_HOME=/usr/lib/jvm/java-21-openjdk \
 	  $(SCRIPT_EXEC) \
+	  $(SCRIPT_NUM_RUNS) \
 	  $(SCRIPT_INPUT) \
 	  $(SCRIPT_OUTPUT_DIR) 2>&1
 	-rm $(SCRIPT_OUTPUT_DIR)/*

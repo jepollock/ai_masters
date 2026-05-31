@@ -75,7 +75,7 @@ The destination port. Traffic is identified by {source\_port, destination\_port}
 
 This is defined by the system being targetted, so has substantial fan-in. It will be correlated with the attack target. However, the service may run on other ports, so it does not drive subsystem. Numeric.
 
-## protocol
+## proto
 
 The protocol transporting the data. Text
 
@@ -83,7 +83,7 @@ The protocol transporting the data. Text
 * tcp
 * udp
 
-## subsystem
+## service
 
 The system being connected to, text. The dataset says "no missing data", but "-" is recorded in this field. This probably indicates the server isn't running anything on that port. Given the NMAP TCP scans, this is expected. It should not be treated as missing data. Text.
 
