@@ -25,7 +25,7 @@ def debug(value):
 
 def main():
     if len(sys.argv) != 4:
-        print("Usage: rt_iot2022.py <num_runs> <input_file> <output_dir>")
+        print("Usage: rt_iot2022_normal.py <num_runs> <input_file> <output_dir>")
         sys.exit(-1)
 
     num_runs = int(sys.argv[1])

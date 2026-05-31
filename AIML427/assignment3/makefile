@@ -98,6 +98,7 @@ local_$(SCRIPT_NAME):
 	-rm $(SCRIPT_STAGED_OUTPUT_DIR)/*
 	-rm $(SCRIPT_STAGED_OUTPUT_DIR)/.*
 	-rmdir $(SCRIPT_STAGED_OUTPUT_DIR)
+	-mkdir -p $(SCRIPT_OUTPUT_DIR)
 	spark-submit --name $(SCRIPT_NAME) \
 	  --master "local[*]"  \
 	  $(SCRIPT_EXEC) \
@@ -144,6 +145,190 @@ $(SCRIPT_OUTPUT): $(SCRIPT_HDFS_SENTINEL) $(SCRIPT_PUSH_SENTINEL) $(SCRIPT_EXEC)
 	-rm $(SCRIPT_OUTPUT_DIR)/*
 	hdfs dfs -get "$(SCRIPT_OUTPUT_DIR)/*" $(SCRIPT_OUTPUT_DIR)
 	touch $(SCRIPT_OUTPUT)
+
+
+
+NORMAL_NAME=rt_iot2022_normal
+NORMAL_BIN_DIR=$(NORMAL_NAME)/bin
+NORMAL_INPUT_DIR=$(NORMAL_NAME)/input
+NORMAL_OUTPUT_DIR=$(NORMAL_NAME)/output
+NORMAL_SENTINEL_DIR=$(NORMAL_NAME)/sentinel
+
+NORMAL_EXEC=$(NORMAL_BIN_DIR)/$(NORMAL_NAME).py
+NORMAL_INPUT=$(wildcard $(NORMAL_INPUT_DIR)/*)
+NORMAL_OUTPUT=$(NORMAL_OUTPUT_DIR)/$(NORMAL_NAME).output
+
+NORMAL_HDFS_SENTINEL=$(NORMAL_SENTINEL_DIR)/hdfs_path_created
+NORMAL_PUSH_SENTINEL=$(NORMAL_SENTINEL_DIR)/input_pushed
+NORMAL_SENTINELS=$(NORMAL_HDFS_SENTINEL) $(NORMAL_PUSH_SENTINEL)
+NORMAL_CHECK=$(NORMAL_NAME)_check
+
+NORMAL_NUM_RUNS=1
+
+$(NORMAL_CHECK): | kinit_check hdfs_check spark_check
+
+clean_$(NORMAL_NAME): | $(NORMAL_CHECK)
+	-hdfs dfs -rm $(NORMAL_INPUT)
+	-hdfs dfs -rm "$(NORMAL_OUTPUT_DIR)/*"
+	-hdfs dfs -rmdir $(NORMAL_INPUT_DIR)
+	-hdfs dfs -rmdir "$(NORMAL_OUTPUT_DIR)"
+	-hdfs dfs -rmdir "$(NORMAL_NAME)"
+	-rm $(NORMAL_SENTINELS)
+	-rm $(NORMAL_OUTPUT_DIR)/*
+	-rm $(NORMAL_OUTPUT_DIR)/.*
+	-rmdir $(NORMAL_OUTPUT_DIR)
+	-rm $(NORMAL_STAGED_OUTPUT_DIR)/*
+	-rm $(NORMAL_STAGED_OUTPUT_DIR)/.*
+	-rmdir $(NORMAL_STAGED_OUTPUT_DIR)
+
+submit_$(NORMAL_NAME): $(NORMAL_OUTPUT)
+
+
+NORMAL_STAGED_OUTPUT_DIR=$(NORMAL_NAME)/staged_output
+local_$(NORMAL_NAME):
+	echo "LOCAL - Submitting $(NORMAL_EXEC)"
+	-rm $(NORMAL_STAGED_OUTPUT_DIR)/*
+	-rm $(NORMAL_STAGED_OUTPUT_DIR)/.*
+	-mkdir -p $(NORMAL_OUTPUT_DIR)
+	-rmdir $(NORMAL_STAGED_OUTPUT_DIR)
+	spark-submit --name $(NORMAL_NAME) \
+	  --master "local[*]"  \
+	  $(NORMAL_EXEC) \
+	  $(NORMAL_NUM_RUNS) \
+	  $(NORMAL_INPUT) \
+	  $(NORMAL_STAGED_OUTPUT_DIR) 2>&1
+	cp $(NORMAL_STAGED_OUTPUT_DIR)/* $(NORMAL_OUTPUT_DIR)
+	touch $(NORMAL_OUTPUT)
+
+$(NORMAL_HDFS_SENTINEL): | $(NORMAL_CHECK)
+	-hdfs dfs -rm $(NORMAL_INPUT)
+	-hdfs dfs -rm "$(NORMAL_OUTPUT_DIR)/*"
+	-hdfs dfs -rmdir $(NORMAL_INPUT_DIR)
+	-mkdir -p $(NORMAL_SENTINEL_DIR)
+	hdfs dfs -mkdir -p $(NORMAL_INPUT_DIR)
+	touch $(NORMAL_HDFS_SENTINEL)
+
+$(NORMAL_PUSH_SENTINEL): $(NORMAL_INPUT) $(NORMAL_HDFS_SENTINEL) | $(NORMAL_CHECK)
+	@echo "Pushing $?"
+	-for i in $(filter-out $(NORMAL_SENTINEL_DIR)/%, $?) ; do \
+	  echo "Removing $$i"; \
+	  hdfs dfs -rm $$i; \
+	done
+	for i in $(filter-out $(NORMAL_SENTINEL_DIR)/%, $?) ; do \
+	  echo "Pushing $$i"; \
+	  hdfs dfs -put $$i $$i; \
+	done;
+	touch $(NORMAL_PUSH_SENTINEL)
+
+$(NORMAL_OUTPUT): $(NORMAL_HDFS_SENTINEL) $(NORMAL_PUSH_SENTINEL) $(NORMAL_EXEC) | $(NORMAL_CHECK)
+	echo "Submitting $(NORMAL_EXEC)"
+	-hdfs dfs -rm "$(NORMAL_OUTPUT_DIR)/*"
+	-hdfs dfs -rmdir $(NORMAL_OUTPUT_DIR)
+	-mkdir -p $(NORMAL_OUTPUT_DIR)
+	spark-submit --name $(NORMAL_NAME) \
+	  --master yarn \
+	  --deploy-mode cluster \
+	  --conf spark.yarn.appMasterEnv.JAVA_HOME=/usr/lib/jvm/java-21-openjdk \
+	  --conf spark.executorEnv.JAVA_HOME=/usr/lib/jvm/java-21-openjdk \
+	  $(NORMAL_EXEC) \
+	  $(NORMAL_NUM_RUNS) \
+	  $(NORMAL_INPUT) \
+	  $(NORMAL_OUTPUT_DIR) 2>&1
+	-rm $(NORMAL_OUTPUT_DIR)/*
+	hdfs dfs -get "$(NORMAL_OUTPUT_DIR)/*" $(NORMAL_OUTPUT_DIR)
+	touch $(NORMAL_OUTPUT)
+
+
+PCA_NAME=rt_iot2022_pca
+PCA_BIN_DIR=$(PCA_NAME)/bin
+PCA_INPUT_DIR=$(PCA_NAME)/input
+PCA_OUTPUT_DIR=$(PCA_NAME)/output
+PCA_SENTINEL_DIR=$(PCA_NAME)/sentinel
+
+PCA_EXEC=$(PCA_BIN_DIR)/$(PCA_NAME).py
+PCA_INPUT=$(wildcard $(PCA_INPUT_DIR)/*)
+PCA_OUTPUT=$(PCA_OUTPUT_DIR)/$(PCA_NAME).output
+
+PCA_HDFS_SENTINEL=$(PCA_SENTINEL_DIR)/hdfs_path_created
+PCA_PUSH_SENTINEL=$(PCA_SENTINEL_DIR)/input_pushed
+PCA_SENTINELS=$(PCA_HDFS_SENTINEL) $(PCA_PUSH_SENTINEL)
+PCA_CHECK=$(PCA_NAME)_check
+
+PCA_NUM_RUNS=1
+
+$(PCA_CHECK): | kinit_check hdfs_check spark_check
+
+clean_$(PCA_NAME): | $(PCA_CHECK)
+	-hdfs dfs -rm $(PCA_INPUT)
+	-hdfs dfs -rm "$(PCA_OUTPUT_DIR)/*"
+	-hdfs dfs -rmdir $(PCA_INPUT_DIR)
+	-hdfs dfs -rmdir "$(PCA_OUTPUT_DIR)"
+	-hdfs dfs -rmdir "$(PCA_NAME)"
+	-rm $(PCA_SENTINELS)
+	-rm $(PCA_OUTPUT_DIR)/*
+	-rm $(PCA_OUTPUT_DIR)/.*
+	-rmdir $(PCA_OUTPUT_DIR)
+	-rm $(PCA_STAGED_OUTPUT_DIR)/*
+	-rm $(PCA_STAGED_OUTPUT_DIR)/.*
+	-rmdir $(PCA_STAGED_OUTPUT_DIR)
+
+submit_$(PCA_NAME): $(PCA_OUTPUT)
+
+
+PCA_STAGED_OUTPUT_DIR=$(PCA_NAME)/staged_output
+local_$(PCA_NAME):
+	echo "LOCAL - Submitting $(PCA_EXEC)"
+	-rm $(PCA_STAGED_OUTPUT_DIR)/*
+	-rm $(PCA_STAGED_OUTPUT_DIR)/.*
+	-rmdir $(PCA_STAGED_OUTPUT_DIR)
+	-mkdir -p $(PCA_OUTPUT_DIR)
+	spark-submit --name $(PCA_NAME) \
+	  --master "local[*]"  \
+	  $(PCA_EXEC) \
+	  $(PCA_NUM_RUNS) \
+	  $(PCA_INPUT) \
+	  $(PCA_STAGED_OUTPUT_DIR) 2>&1
+	cp $(PCA_STAGED_OUTPUT_DIR)/* $(PCA_OUTPUT_DIR)
+	touch $(PCA_OUTPUT)
+
+$(PCA_HDFS_SENTINEL): | $(PCA_CHECK)
+	-hdfs dfs -rm $(PCA_INPUT)
+	-hdfs dfs -rm "$(PCA_OUTPUT_DIR)/*"
+	-hdfs dfs -rmdir $(PCA_INPUT_DIR)
+	-mkdir -p $(PCA_SENTINEL_DIR)
+	hdfs dfs -mkdir -p $(PCA_INPUT_DIR)
+	touch $(PCA_HDFS_SENTINEL)
+
+$(PCA_PUSH_SENTINEL): $(PCA_INPUT) $(PCA_HDFS_SENTINEL) | $(PCA_CHECK)
+	@echo "Pushing $?"
+	-for i in $(filter-out $(PCA_SENTINEL_DIR)/%, $?) ; do \
+	  echo "Removing $$i"; \
+	  hdfs dfs -rm $$i; \
+	done
+	for i in $(filter-out $(PCA_SENTINEL_DIR)/%, $?) ; do \
+	  echo "Pushing $$i"; \
+	  hdfs dfs -put $$i $$i; \
+	done;
+	touch $(PCA_PUSH_SENTINEL)
+
+$(PCA_OUTPUT): $(PCA_HDFS_SENTINEL) $(PCA_PUSH_SENTINEL) $(PCA_EXEC) | $(PCA_CHECK)
+	echo "Submitting $(PCA_EXEC)"
+	-hdfs dfs -rm "$(PCA_OUTPUT_DIR)/*"
+	-hdfs dfs -rmdir $(PCA_OUTPUT_DIR)
+	-mkdir -p $(PCA_OUTPUT_DIR)
+	spark-submit --name $(PCA_NAME) \
+	  --master yarn \
+	  --deploy-mode cluster \
+	  --conf spark.yarn.appMasterEnv.JAVA_HOME=/usr/lib/jvm/java-21-openjdk \
+	  --conf spark.executorEnv.JAVA_HOME=/usr/lib/jvm/java-21-openjdk \
+	  $(PCA_EXEC) \
+	  $(PCA_NUM_RUNS) \
+	  $(PCA_INPUT) \
+	  $(PCA_OUTPUT_DIR) 2>&1
+	-rm $(PCA_OUTPUT_DIR)/*
+	hdfs dfs -get "$(PCA_OUTPUT_DIR)/*" $(PCA_OUTPUT_DIR)
+	touch $(PCA_OUTPUT)
+
 
 
 
