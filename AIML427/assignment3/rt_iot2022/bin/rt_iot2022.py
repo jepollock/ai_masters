@@ -25,7 +25,7 @@ LABEL_COLUMN = "label"
 # https://xkcd.com/221/ - 4 is overused
 RANDOM_SEED = 221
 
-enable_debug = True
+enable_debug = False
 def debug(value):
     if enable_debug:
         print(f"JASON: {value}")
@@ -118,6 +118,8 @@ def main():
 
     spark = (SparkSession.builder.appName(f"rt_iot2022_{variant}")
              .getOrCreate())
+
+    spark.sparkContext.setLogLevel("WARN")
 
     # generated using to_schema.sh
     # Updated 32, 33 to LongType.
@@ -284,7 +286,8 @@ def main():
         predictions.append([model.transform(training), model.transform(test)])
 
     # Print some output, just because.
-    predictions[0][1].select(LABEL_COLUMN, PREDICTION_COLUMN).show(5)
+    if enable_debug:
+        predictions[0][1].select(LABEL_COLUMN, PREDICTION_COLUMN).show(5)
 
     # Report the 10 results.
     # remove max(Accuracy), min(accuracy), average(accuracy) std_dev(accuracy)
@@ -295,8 +298,9 @@ def main():
     accuracies = numpy.empty((0, 2))
     debug(f"predictions.size = {len(predictions)}")
     for (train_prediction, test_prediction) in predictions:
-        train_prediction.select(LABEL_COLUMN, PREDICTION_COLUMN).show(5)
-        test_prediction.select(LABEL_COLUMN, PREDICTION_COLUMN).show(5)
+        if enable_debug:
+            train_prediction.select(LABEL_COLUMN, PREDICTION_COLUMN).show(5)
+            test_prediction.select(LABEL_COLUMN, PREDICTION_COLUMN).show(5)
         accuracies = numpy.append(accuracies, [[evaluator.evaluate(train_prediction), evaluator.evaluate(test_prediction)]], axis=0)
 
     debug(f"Accuracies.shape = {accuracies.shape}")
@@ -331,7 +335,8 @@ def main():
     for ( model, (_, test_prediction)) in zip(trained_models, predictions):
         original_labels = model.stages[0].labels
         debug(original_labels)
-        test_prediction.select(LABEL_COLUMN, PREDICTION_COLUMN).show(5)
+        if enable_debug:
+            test_prediction.select(LABEL_COLUMN, PREDICTION_COLUMN).show(5)
 
         for label_idx, label in enumerate(original_labels):
             precision_evaluator.setMetricLabel(label_idx)
