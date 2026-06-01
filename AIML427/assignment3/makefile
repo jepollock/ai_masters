@@ -66,13 +66,13 @@ SCRIPT_SENTINEL_DIR=$(SCRIPT_NAME)/sentinel
 
 SCRIPT_EXEC=$(SCRIPT_BIN_DIR)/$(SCRIPT_NAME).py
 SCRIPT_INPUT=$(wildcard $(SCRIPT_INPUT_DIR)/*)
-SCRIPT_OUTPUT=$(SCRIPT_OUTPUT_DIR)/$(SCRIPT_NAME).$(SCRIPT_VARIANT).output
+SCRIPT_OUTPUT=$(SCRIPT_OUTPUT_DIR)/$(SCRIPT_NAME).$(VARIANT).output
 
 SCRIPT_HDFS_SENTINEL=$(SCRIPT_SENTINEL_DIR)/hdfs_path_created
 SCRIPT_PUSH_SENTINEL=$(SCRIPT_SENTINEL_DIR)/input_pushed
 SCRIPT_SENTINELS=$(SCRIPT_HDFS_SENTINEL) $(SCRIPT_PUSH_SENTINEL)
 SCRIPT_CHECK=$(SCRIPT_NAME)_check
-SCRIPT_NUM_RUNS=1
+SCRIPT_NUM_RUNS=10
 SCRIPT_LOG_LEVEL=WARN
 
 .PHONY: local_rt_iot2022_standardized local_rt_iot2022_pca local_rt_iot2022_baseline
@@ -87,18 +87,18 @@ local_rt_iot2022_pca:
 local_rt_iot2022_baseline:
 	$(MAKE) local_rt_iot2022 VARIANT=baseline
 
-rt_iot2022_standardized:
-	$(MAKE) rt_iot2022 VARIANT=standardized
+submit_rt_iot2022_standardized:
+	$(MAKE) submit_rt_iot2022 VARIANT=standardized
 
-rt_iot2022_pca:
-	$(MAKE) rt_iot2022 VARIANT=pca
+submit_rt_iot2022_pca:
+	$(MAKE) submit_rt_iot2022 VARIANT=pca
 
-rt_iot2022_baseline:
-	$(MAKE) rt_iot2022 VARIANT=baseline
+submit_rt_iot2022_baseline:
+	$(MAKE) submit_rt_iot2022 VARIANT=baseline
 
-local_all: local_rt_iot2022_standardized local_rt_iot2022_pca local_rt_iot2022_baseline
+local_all: local_rt_iot2022_baseline local_rt_iot2022_standardized local_rt_iot2022_pca 
 
-all: rt_iot2022_standardized rt_iot2022_pca rt_iot2022_baseline
+all: submit_rt_iot2022_standardized submit_rt_iot2022_pca submit_rt_iot2022_baseline
 
 $(SCRIPT_CHECK): | kinit_check hdfs_check spark_check
 
@@ -127,8 +127,8 @@ local_$(SCRIPT_NAME):
 	-rmdir $(SCRIPT_STAGED_OUTPUT_DIR)
 	-mkdir -p $(SCRIPT_OUTPUT_DIR)
 	spark-submit \
-          --driver-memory 8g \
-          --executor-memory 8g \
+          --driver-memory 12g \
+          --executor-memory 12g \
           --name $(SCRIPT_NAME) \
 	  --master "local[*]"  \
 	  $(SCRIPT_EXEC) \

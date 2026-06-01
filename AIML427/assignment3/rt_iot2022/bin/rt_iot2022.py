@@ -98,7 +98,7 @@ def enableFeatureVectorScaling(variant):
 
 
 def enablePCA(variant):
-    return variant == "PCA"
+    return variant == "pca"
 
 
 def main():
