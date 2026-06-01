@@ -43,7 +43,7 @@ The dataset has 5 columns which aren't pure numeric values.
 
 The label for the instance, text.
 
-Attack Type, count
+Attack Type, count, good traffic
 * NMAP\_FIN\_SCAN 28
 * Metasploit\_Brute\_Force\_SSH 37
 * Wipro\_bulb 253 - OK
@@ -98,6 +98,13 @@ The system being connected to, text. The dataset says "no missing data", but "-"
 * mqtt
 * dns
 
+# Dataset problems
+
+
+The dataset doesn't have any _good_ traffic in it, so it can differentiate between types of attacks, but it can't differentiate between
+attacks and not attacks.
+
 
 # Tasks
+
 
