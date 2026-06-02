@@ -1,0 +1,590 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+\addbibresource{references.bib}
+\usepackage{amsmath}  % Basic math symbols and environments
+\usepackage{amssymb}  % Extended symbol collection
+\usepackage{mathtools} % Fixes and additions to amsmath
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{csvsimple}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage{indentfirst}
+\usepackage{algorithm}
+\usepackage{enumitem}
+\usepackage{algpseudocode}
+\DeclareGraphicsExtensions{.png,.pdf}
+\begin{document}
+	
+	\noindent
+	\textbf{title:} AIML427 - Assignment 3 \\
+	\textbf{date:} May 30, 2026 \\
+	\textbf{author:} Jason Pollock \\
+	\textbf{email:} jason@pollock.ca, pollocjaso@myvuw.ac.nz
+	
+\section{Task Overview}
+
+Dataset: \href{https://www.kaggle.com/datasets/supplejade/rt-iot2022real-time-internet-of-things/data}{rt-iot2022}
+
+
+Source paper:
+\href{https://link.springer.com/article/10.1186/s42400-023-00178-5}{Quantized autoencoder (QAE) intrusion detection system for anomaly detection in resource-constrained IoT devices using RT-IoT2022 dataset}
+
+The dataset was generated from a network capture demonstrating Internet of Things network intrusion and attacks.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | l | l | }
+		\hline
+		\textbf{Description} & \textbf{Value} \\
+		\hline
+		Num Features & 83 \\
+		\hline
+		Data Size & 52MBytes \\
+		\hline
+		Row Count & 123,118 \\
+		\hline
+		Missing Values & No \\
+		\hline
+	\end{tabular}
+	\caption{RT-IoT2022 Dataset Description}
+\end{table}
+
+I am seeking to determine if a DecisionTree is able to discern attacks when trained on an unbalanced dataset.
+
+The expected output is a pair of CSV files, one with the overall accuracy, the other with the per-label precision and recall.
+
+\section{Conclusion}
+
+For this specific dataset, a DecisionTree is not appropriate solution. It fails to train on the low count imbalanced data and is has low precision for some labels. When detecting attacks, human effort needs to be accounted for. Human cost will be driven by the number of false positives, and high false positive rates (\textless 50\% precision) will rapidly train the human to ignore the model.
+
+Spark is not an appropriate tool to explore model options. It isn't possible to quickly iterate, the algorithmic support isn't there (I had to implement TargetEncoder for multiple class support) and clusters are slower and less capable than current consumer hardware.
+
+I propose a pipeline that, when given a dataset for classification, detects datatypes from the schema, performs appropriate transformations (TargetEncoding, Standardization), and trains many different model types. It then evaluates the entirety of the available models to see which is best for the given dataset. Hyperparameter searching could also be included in the search space.
+
+This would use the capabilities of a cluster, sharing transformation results and parallelizing computation.
+
+\section{Dataset description}
+
+The data is very lopsided, with only 12.5k good, and 110k bad samples. Additionally, some attacks had less than 50 examples.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | l | r | l | }
+		\hline
+		\textbf{Attack Type} & \textbf{Count} & \textbf{Is Attack?} \\
+		\hline
+		NMAP\_FIN\_SCAN &  28 & True \\
+		\hline
+		Metasploit\_Brute\_Force\_SSH & 37 & True  \\
+		\hline
+		DDOS\_Slowloris & 534 & True  \\
+		\hline
+		NMAP\_TCP\_scan & 1002 & True \\
+		\hline
+		NMAP\_OS\_DETECTION & 2000 & True \\
+		\hline
+		NMAP\_XMAS\_TREE\_SCAN & 2010 & True \\
+		\hline
+		NMAP\_UDP\_SCAN & 2590 & True \\
+		\hline
+		ARP\_poisioning & 7750 & True \\
+		\hline
+		DOS\_SYN\_Hping & 94659 & True \\
+		\hline
+		Wipro\_bulb & 253 & False  \\
+		\hline
+		MQTT\_Publish & 4146 & False \\
+		\hline
+		Thing\_Speak & 8108 & False \\
+		\hline
+	\end{tabular}
+\caption{RT-IoT2022 per-label counts}
+\end{table}
+
+The dataset has 5 columns which aren't pure numeric values.
+
+\subsection{Attack\_type}
+
+The class label for the instance. Text.
+
+The paper also lists "Amazon Alexa", which isn't present in the labelled column.
+
+\subsection{no}
+
+The row id.
+
+\subsection{id.orig\_p}
+
+The originating port. Integer. 
+
+Traffic is identified by (source\_port, destination\_port) this forms a soft (time localized) id.
+
+The values span the address space, but also has substantial fan-in. That they aren't evenly distributed hints that this is good signal. Numeric.
+
+\subsection{id.resp\_p}
+
+The destination port. Integer.
+
+Traffic is identified by (source\_port, destination\_port) this forms a soft (time localized) id.
+
+This is defined by the system being targetted, so has substantial fan-in. It will be correlated with the attack target. However, the service may run on other ports, so it does not drive subsystem. Numeric.
+
+\subsection{proto}
+
+The protocol transporting the data, contains (icmp, tcp, udp). Text.
+
+\subsection{service}
+
+The system being connected to. While the dataset says "no missing data", "-" is recorded in this field. This likely indicates the server isn't running anything on that port. Given the NMAP TCP scans, this is expected. It should not be treated as missing data. The field contains (radius, ssh, irc, dhcp, ntp, -, ssl, http, mqtt, dns). Text.
+
+\section{Preprocessing}
+
+No preprocessing was performed before passing it to the pipeline. It was unzipped into the input directory.
+
+There was no missing data.
+
+The following transformations were applied in the pipline:
+
+\begin{itemize}[nosep]
+	\item converted all column names with "." to "\_", Spark has a special interpretation for a.b
+	\item removed the "no" rowid column from the feature list
+	\item Attack\_type - StringIndexed the label column
+	\item proto, service - StringIndexed these text columns
+\end{itemize}
+
+If the data required standardization (both standardized and pca variants), then the following columns were target encoded - (id\_orig\_p, id\_resp\_p, proto\_indexed, service\_indexed)
+
+Target encoding replaces the value with the likelihood of the (column, label) pair out of the rows having that same (column) value.
+
+This converts the column to a probability, making it useable by standardization and pca.
+
+\section{Program Description (pseudocode)}
+
+Target encoding is implemented in LikelihoodEncoder and LikelihoodModel.
+
+\begin{enumerate}[nosep]
+    \item check the provided parameters for validity
+    \item define the schema - generated by to\_schema.sh
+    \item read the csv into a dataframe
+    \item convert the column names
+    \item grab the starting feature column names
+    \item create the StringIndexer to index the label column - kept separate for later
+    \item create the StringIndexer to index the proto and service columns
+    \item if target encoding is enabled, create the target encoders
+    \item assemble the feature vector from the transformed feature column names
+    \item if scaling is enabled, standardize the feature vector column
+    \item if pca is enabled, perform pca on the standardized feature vector column
+	\item create the decision tree from the appropriate feature vector column
+	\item construct the pipeline from the created stages
+	\item create num\_runs test/train splits
+	\item for each split, train the model
+	\item for each model, obtain the test and training prediction pair
+	\item for each prediction pair, obtain the accuracies
+	\item create a csv with a row for the average accuracy and std deviation for each {variant, test|train} pair.
+	\item for each {model, test prediction}
+	\begin{enumerate}[nosep]
+		\item obtain the original label
+		\item for each label, get the precision and recall
+	\end{enumerate}
+	\item create a csv with a row for each {variant, label} pair with the average precision and recall.
+\end{enumerate}
+
+PCA was configured with k=5.
+
+\section{Running the Program}
+
+Data was obtained on my laptop. While single runs could execute on the cluster, a full 10 run comparison ran out of memory, and it was not possible to increase the RAM allowance.
+
+Single run executions:
+
+Time to train 1 model locally:
+
+\begin{verbatim}
+$ for i in baseline standardized pca ; do \
+    echo $i;time make local_rt_iot2022 VARIANT=$i >$i.log 2>&1 ; \
+  done	
+	
+baseline      69.16s user  2.24s system 488% cpu   14.618 total
+standardized 383.90s user 42.38s system 561% cpu 1:15.87 total
+pca          381.10s user 45.73s system 550% cpu 1:17.50 total
+\end{verbatim}
+
+Time to train 1 model on the ECS cluster:
+
+\begin{verbatim}
+$ for i in baseline standardized pca ; do \
+     echo $i;time make submit_rt_iot2022 VARIANT=$i >$i.log 2>&1 ; \
+  done	
+
+baseline      35.01s user 2.01s system 53% cpu 1:09.03 total
+standardized  35.70s user 1.96s system 15% cpu 4:06.16 total
+pca           45.96s user 2.73s system 25% cpu 3:07.78 total
+\end{verbatim}
+
+Time to train 10 models locally:
+
+\begin{verbatim}
+baseline      454.69s user  10.82s system 702% cpu  1:06.25 total
+standardized 4270.73s user 387.26s system 678% cpu 11:26.07 total
+pca          4247.06s user 403.38s system 639% cpu 12:06.73 total
+\end{verbatim}
+
+Running the pipeline locally was almost 5 times faster (0:14 vs 1:09) than the ECS cluster.
+
+\section{Compare Baseline to Standardized}
+
+For each run, I generated two CSV files, the overall accuracy, and the per-label precision and recall.
+
+Neither did well when the row counts were low. NMAP\_FIN\_SCAN and Metasploit\_Brute\_Force\_SSH had no successes.
+
+Standardization did improve the average performance across 10 runs by almost 1\%. However, it substantially decreased the performance of some individual labels. Standardization also reduced the number of nodes in the tree from 27 to 21.
+
+For example, NMAP\_XMAS\_TREE\_SCAN went from a 78\% precision to a 17\% precision, dramatically increasing the false positive rate. When detecting attacks, this is bad, it creates a lot of work for individuals.
+
+Standardization broke NMAP\_TCP\_scan, taking it to 0\% precision.
+
+I do not think Standardization is a helpful transformation for this problem, and a decision tree is not a very good model for this dataset and problem. It fails to classify the low frequency attacks. The original paper used an autoencoder.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | l | l | r | r | }
+		\hline
+		\textbf{variant} & \textbf{dataset} & \textbf{average accuracy} & \textbf{stddev} \\
+		\hline		
+		baseline & test & 0.954958809103962 & 0.0014872811736556472 \\
+		\hline
+		baseline & train & 0.9552487045293667 & 0.0013788234697324929 \\
+		\hline
+		standardized & test & 0.9639661431197368 & 0.0032387981024611075 \\
+		\hline
+		standardized & train & 0.9642344999269117 & 0.002999926897611066 \\
+		\hline
+	\end{tabular}
+\caption{Baseline/Standardized Average Accuracy}
+\end{table}	
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | l | l | r | r | }
+		\hline
+		\textbf{variant} & \textbf{label} & \textbf{precision\_mean} & \textbf{recall\_mean} \\
+		\hline		
+		baseline & Wipro\_bulb & 0.8178273407265004 & 0.4430573490280868 \\
+		\hline
+		baseline & NMAP\_XMAS\_TREE\_SCAN & 0.7876696890202892 & 0.32497788630797886 \\
+		\hline
+		baseline & Thing\_Speak & 0.9363568900725244 & 0.9152425716658559 \\
+		\hline
+		baseline & NMAP\_FIN\_SCAN & 0.0 & 0.0 \\
+		\hline
+		baseline & DOS\_SYN\_Hping & 1.0 & 1.0 \\
+		\hline
+		baseline & MQTT\_Publish & 1.0 & 0.9970175075014922 \\
+		\hline
+		baseline & Metasploit\_Brute\_Force\_SSH & 0.0 & 0.0 \\
+		\hline
+		baseline & NMAP\_UDP\_SCAN & 0.9310644146902816 & 0.9493780054393909 \\
+		\hline
+		baseline & NMAP\_TCP\_scan & 0.3 & 0.0031037915586756147 \\
+		\hline
+		baseline & NMAP\_OS\_DETECTION & 0.4297921787100374 & 0.6920958568499087 \\
+		\hline
+		baseline & ARP\_poisioning & 0.9466888412402215 & 0.8726909031896712 \\
+		\hline
+		baseline & DDOS\_Slowloris & 0.0 & 0.0 \\
+		\hline
+		standardized & Wipro\_bulb & 0.6413907387334847 & 0.6512638426738316 \\
+		\hline
+		standardized & NMAP\_XMAS\_TREE\_SCAN & 0.16808628861900338 & 0.4989914520099549 \\
+		\hline
+		standardized & Thing\_Speak & 1.0 & 0.9710381437519393 \\
+		\hline
+		standardized & NMAP\_FIN\_SCAN & 0.0 & 0.0 \\
+		\hline
+		standardized & DOS\_SYN\_Hping & 1.0 & 1.0 \\
+		\hline
+		standardized & MQTT\_Publish & 1.0 & 0.9970175075014922 \\
+		\hline
+		standardized & Metasploit\_Brute\_Force\_SSH & 0.0 & 0.0 \\
+		\hline
+		standardized & NMAP\_UDP\_SCAN & 0.8798350018240798 & 0.9854876528581492 \\
+		\hline
+		standardized & NMAP\_TCP\_scan & 0.0 & 0.0 \\
+		\hline
+		standardized & NMAP\_OS\_DETECTION & 0.17195907195235943 & 0.5 \\
+		\hline
+		standardized & ARP\_poisioning & 1.0 & 0.9376095753544675 \\
+		\hline
+		standardized & DDOS\_Slowloris & 0.11675367167546331 & 0.11352014045850822 \\
+		\hline
+	\end{tabular}
+\caption{Baseline/Standardized Per Label}
+\end{table}	
+		
+\section{Compare Baseline to PCA}
+
+For each run, I generated two CSV files, the overall accuracy, and the per-label precision and recall.
+
+Neither did well when the row counts were low. NMAP\_FIN\_SCAN and Metasploit\_Brute\_Force\_SSH had no successes.
+
+PCA (k=5) performed worse across all metrics other than training accuracy, indicating overfitting. Test accuracy dropped from 95.5\% to 90.7\%. It also had substantially more nodes in the tree, going from 27 nodes in the baseline to 49 post-PCA.
+
+Several values for K were tested:
+
+\begin{itemize}[nosep]
+	\item k=5 - 90.7\%
+	\item k=10 - 91.3\%
+	\item k=20 - 91.9\%
+	\item k=40 - 92.4\%
+	\item k=50 - 90.6\%
+	\item k=60 - 90.8\%
+	\item k=80 - 90.8\%
+\end{itemize}
+
+Interestingly, there was a diminishing return as K increased, with a definite fall off as K exceeded 40. This indicates most of the fields are involved in the performance of the model, and that the tail features mislead the DecisionTree. The initial drop in performance indicates that relatively unimportant features are very important for some classes.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | l | l | r | r | }
+		\hline
+		\textbf{variant} & \textbf{dataset} & \textbf{average accuracy} & \textbf{stddev} \\
+		\hline
+		baseline & test & 0.954958809103962 & 0.0014872811736556472 \\
+		\hline
+		baseline & train & 0.9552487045293667 & 0.0013788234697324929 \\
+		\hline
+		pca & test & 0.9067764755436931 & 0.08564213266138208 \\
+		\hline
+		pca & train & 0.9629154514252389 & 0.00804645632364453 \\
+		\hline
+	\end{tabular}
+	\caption{Baseline/PCA Average Accuracy}
+\end{table}	
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | l | l | r | r | }
+		\hline
+		\textbf{variant} & \textbf{label} & \textbf{precision\_mean} & \textbf{recall\_mean} \\
+		\hline		
+		baseline & Wipro\_bulb & 0.8178273407265004 & 0.4430573490280868 \\
+		\hline
+		baseline & NMAP\_XMAS\_TREE\_SCAN & 0.7876696890202892 & 0.32497788630797886 \\
+		\hline
+		baseline & Thing\_Speak & 0.9363568900725244 & 0.9152425716658559 \\
+		\hline
+		baseline & NMAP\_FIN\_SCAN & 0.0 & 0.0 \\
+		\hline
+		baseline & DOS\_SYN\_Hping & 1.0 & 1.0 \\
+		\hline
+		baseline & MQTT\_Publish & 1.0 & 0.9970175075014922 \\
+		\hline
+		baseline & Metasploit\_Brute\_Force\_SSH & 0.0 & 0.0 \\
+		\hline
+		baseline & NMAP\_UDP\_SCAN & 0.9310644146902816 & 0.9493780054393909 \\
+		\hline
+		baseline & NMAP\_TCP\_scan & 0.3 & 0.0031037915586756147 \\
+		\hline
+		baseline & NMAP\_OS\_DETECTION & 0.4297921787100374 & 0.6920958568499087 \\
+		\hline
+		baseline & ARP\_poisioning & 0.9466888412402215 & 0.8726909031896712 \\
+		\hline
+		baseline & DDOS\_Slowloris & 0.0 & 0.0 \\
+		\hline
+		pca & Wipro\_bulb & 0.4195522030651341 & 0.1164079543776702 \\
+		\hline
+		pca & NMAP\_XMAS\_TREE\_SCAN & 0.5911651704409508 & 0.9113725007846067 \\
+		\hline
+		pca & Thing\_Speak & 0.8234064493408448 & 0.8002452268361433 \\
+		\hline
+		pca & NMAP\_FIN\_SCAN & 0.0 & 0.0 \\
+		\hline
+		pca & DOS\_SYN\_Hping & 0.9996023019960003 & 0.9556376970151488 \\
+		\hline
+		pca & MQTT\_Publish & 0.9075297959532544 & 0.9478309019685917 \\
+		\hline
+		pca & Metasploit\_Brute\_Force\_SSH & 0.0 & 0.0 \\
+		\hline
+		pca & NMAP\_UDP\_SCAN & 0.5881113027309874 & 0.792931099954831 \\
+		\hline
+		pca & NMAP\_TCP\_scan & 0.36377959534751214 & 0.5845096524171474 \\
+		\hline
+		pca & NMAP\_OS\_DETECTION & 0.7062938700376213 & 0.6612308108639718 \\
+		\hline
+		pca & ARP\_poisioning & 0.6940685315684869 & 0.6292020516892894 \\
+		\hline
+		pca & DDOS\_Slowloris & 0.6103136810279668 & 0.09625779348932183 \\
+		\hline
+	\end{tabular}
+\caption{Baseline/PCA Per Label}
+\end{table}	
+
+\section{Appendix: Baseline Model}
+
+\begin{verbatim}
+DecisionTreeClassificationModel: depth=5, numNodes=27, numClasses=13, numFeatures=83
+  If (feature 1 <= 21.5)
+   If (feature 27 <= 117.5)
+    If (feature 82 in {1.0})
+     Predict: 4.0
+    Else (feature 82 not in {1.0})
+     If (feature 17 <= 0.5)
+      If (feature 82 in {0.0})
+       Predict: 5.0
+      Else (feature 82 not in {0.0})
+       Predict: 1.0
+     Else (feature 17 > 0.5)
+      Predict: 6.0
+   Else (feature 27 > 117.5)
+    Predict: 0.0
+  Else (feature 1 > 21.5)
+   If (feature 81 in {2.0})
+    Predict: 3.0
+   Else (feature 81 not in {2.0})
+    If (feature 52 <= 48.041343499999996)
+     If (feature 81 in {1.0,4.0,6.0,7.0,8.0,9.0})
+      If (feature 42 <= 91.9103625)
+       Predict: 2.0
+      Else (feature 42 > 91.9103625)
+       Predict: 1.0
+     Else (feature 81 not in {1.0,4.0,6.0,7.0,8.0,9.0})
+      If (feature 11 <= 12.0)
+       Predict: 4.0
+      Else (feature 11 > 12.0)
+       Predict: 5.0
+    Else (feature 52 > 48.041343499999996)
+     If (feature 36 <= 19.798990000000003)
+      If (feature 52 <= 246.524811)
+       Predict: 2.0
+      Else (feature 52 > 246.524811)
+       Predict: 1.0
+     Else (feature 36 > 19.798990000000003)
+      If (feature 80 <= 501.5)
+       Predict: 1.0
+      Else (feature 80 > 501.5)
+       Predict: 9.0
+\end{verbatim}
+
+\section{Appendix: Standardized Model}
+
+\begin{verbatim}
+DecisionTreeClassificationModel: depth=5, numNodes=21, numClasses=13, numFeatures=83
+  If (feature 82 <= 2.6473429307455314)
+   If (feature 82 <= 1.32876307378131)
+    If (feature 33 <= 0.4271388368097838)
+     If (feature 81 <= 3.5412766196850214)
+      If (feature 78 <= 0.005026018562253484)
+       Predict: 4.0
+      Else (feature 78 > 0.005026018562253484)
+       Predict: 5.0
+     Else (feature 81 > 3.5412766196850214)
+      If (feature 10 <= 4.859901879707672)
+       Predict: 9.0
+      Else (feature 10 > 4.859901879707672)
+       Predict: 3.0
+    Else (feature 33 > 0.4271388368097838)
+     If (feature 82 <= 0.05866939970469115)
+      If (feature 82 <= 0.02560645637882683)
+       Predict: 9.0
+      Else (feature 82 > 0.02560645637882683)
+       Predict: 2.0
+     Else (feature 82 > 0.05866939970469115)
+      If (feature 80 <= 1.7085563789506293)
+       Predict: 4.0
+      Else (feature 80 > 1.7085563789506293)
+       Predict: 1.0
+   Else (feature 82 > 1.32876307378131)
+    If (feature 81 <= 0.007444297001845239)
+     Predict: 1.0
+    Else (feature 81 > 0.007444297001845239)
+     Predict: 2.0
+  Else (feature 82 > 2.6473429307455314)
+   Predict: 0.0
+\end{verbatim}
+
+\section{Appendix: PCA'ed Model}
+
+\begin{verbatim}
+DecisionTreeClassificationModel: depth=5, numNodes=49, numClasses=13, numFeatures=5
+  If (feature 2 <= 0.9316781304348174)
+   If (feature 1 <= 0.3691899079209431)
+    If (feature 4 <= -0.03580551530623803)
+     If (feature 0 <= -0.30267849024594506)
+      If (feature 0 <= -2.8750994846204154)
+       Predict: 3.0
+      Else (feature 0 > -2.8750994846204154)
+       Predict: 9.0
+     Else (feature 0 > -0.30267849024594506)
+      Predict: 4.0
+    Else (feature 4 > -0.03580551530623803)
+     If (feature 2 <= -0.05111283296554478)
+      If (feature 3 <= -4.528984511416941)
+       Predict: 7.0
+      Else (feature 3 > -4.528984511416941)
+       Predict: 6.0
+     Else (feature 2 > -0.05111283296554478)
+      If (feature 0 <= -2.8750994846204154)
+       Predict: 3.0
+      Else (feature 0 > -2.8750994846204154)
+       Predict: 5.0
+   Else (feature 1 > 0.3691899079209431)
+    If (feature 1 <= 0.7341388416253267)
+     If (feature 2 <= 0.48179924954738146)
+      If (feature 0 <= 0.19119747830694434)
+       Predict: 1.0
+      Else (feature 0 > 0.19119747830694434)
+       Predict: 4.0
+     Else (feature 2 > 0.48179924954738146)
+      If (feature 3 <= -3.707180668178191)
+       Predict: 0.0
+      Else (feature 3 > -3.707180668178191)
+       Predict: 1.0
+    Else (feature 1 > 0.7341388416253267)
+     If (feature 3 <= -9.304638902308835)
+      If (feature 3 <= -10.268756636618265)
+       Predict: 2.0
+      Else (feature 3 > -10.268756636618265)
+       Predict: 1.0
+     Else (feature 3 > -9.304638902308835)
+      Predict: 2.0
+  Else (feature 2 > 0.9316781304348174)
+   If (feature 4 <= 0.4235624770592863)
+    If (feature 3 <= -7.971496402833052)
+     If (feature 1 <= -0.48994787990145316)
+      Predict: 3.0
+     Else (feature 1 > -0.48994787990145316)
+      If (feature 3 <= -8.72296916857681)
+       Predict: 2.0
+      Else (feature 3 > -8.72296916857681)
+       Predict: 3.0
+    Else (feature 3 > -7.971496402833052)
+     If (feature 1 <= -0.08361388106717291)
+      If (feature 3 <= -2.396488713811581)
+       Predict: 2.0
+      Else (feature 3 > -2.396488713811581)
+       Predict: 1.0
+     Else (feature 1 > -0.08361388106717291)
+      Predict: 2.0
+   Else (feature 4 > 0.4235624770592863)
+    If (feature 0 <= -0.4733174629508266)
+     If (feature 3 <= -7.971496402833052)
+      Predict: 2.0
+     Else (feature 3 > -7.971496402833052)
+      If (feature 0 <= -0.9097497486855517)
+       Predict: 9.0
+      Else (feature 0 > -0.9097497486855517)
+       Predict: 2.0
+    Else (feature 0 > -0.4733174629508266)
+     If (feature 1 <= 0.9454298520420823)
+      Predict: 0.0
+     Else (feature 1 > 0.9454298520420823)
+      Predict: 1.0
+\end{verbatim}
+
+\end{document}
