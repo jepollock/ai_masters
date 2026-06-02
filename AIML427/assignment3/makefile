@@ -3,7 +3,16 @@
 ENV?=ecs
 VARIANT?=baseline
 
-.PHONY: kinit_check env_check clean 
+PDF_TARGETS=$(wildcard *.pdf)
+RELEASE_NAME=pollocjaso_aiml427_asst3
+OTHER_FILES=makefile README.txt to_schema.sh ecs_hadoop_env ecs_spark_env local_hadoop_env local_spark_env rt_iot2022
+
+
+release: clean_rt_iot2022
+	tar -czf $(RELEASE_NAME).tgz -s ",^,$(RELEASE_NAME)/," $(PDF_TARGETS) $(OTHER_FILES)
+
+
+.PHONY: kinit_check env_check clean release
 
 # Environment checks to ensure values are populated and working.
 env_check:
