@@ -72,7 +72,7 @@ SCRIPT_HDFS_SENTINEL=$(SCRIPT_SENTINEL_DIR)/hdfs_path_created
 SCRIPT_PUSH_SENTINEL=$(SCRIPT_SENTINEL_DIR)/input_pushed
 SCRIPT_SENTINELS=$(SCRIPT_HDFS_SENTINEL) $(SCRIPT_PUSH_SENTINEL)
 SCRIPT_CHECK=$(SCRIPT_NAME)_check
-SCRIPT_NUM_RUNS=10
+SCRIPT_NUM_RUNS=1
 SCRIPT_LOG_LEVEL=WARN
 
 .PHONY: local_rt_iot2022_standardized local_rt_iot2022_pca local_rt_iot2022_baseline
@@ -127,8 +127,8 @@ local_$(SCRIPT_NAME):
 	-rmdir $(SCRIPT_STAGED_OUTPUT_DIR)
 	-mkdir -p $(SCRIPT_OUTPUT_DIR)
 	spark-submit \
-          --driver-memory 12g \
-          --executor-memory 12g \
+          --driver-memory 16g \
+          --executor-memory 16g \
           --name $(SCRIPT_NAME) \
 	  --master "local[*]"  \
 	  $(SCRIPT_EXEC) \
