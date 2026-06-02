@@ -280,6 +280,10 @@ def main():
     for train in training_data:
         trained_models.append(pipeline.fit(train))
 
+    debug("***Begin Model Dump***")
+    print(trained_models[0].stages[-1].toDebugString)
+    debug("***End Model Dump***")
+
     # Predict the results of the 10 trees.
     predictions = []
     for (model, training, test) in zip(trained_models, training_data, test_data):
