@@ -276,18 +276,23 @@ def main():
         training_data[i], test_data[i] = raw_dataframe.randomSplit([0.7, 0.3], seed=RANDOM_SEED + i)
 
     # Train num_runs models
-    trained_models = []
-    for train in training_data:
-        trained_models.append(pipeline.fit(train))
-
-    debug("***Begin Model Dump***")
-    print(trained_models[0].stages[-1].toDebugString)
-    debug("***End Model Dump***")
-
-    # Predict the results of the 10 trees.
+    # lower memory pressure by not keeping the model around
+    # This isn't sufficient, the memory is still being pinned.
     predictions = []
-    for (model, training, test) in zip(trained_models, training_data, test_data):
+    dump_first = True
+    for (training, test) in zip(training_data, test_data):
+        model = pipeline.fit(training)
         predictions.append([model.transform(training), model.transform(test)])
+        if dump_first:
+            dump_first = False
+            debug("***Begin Model Dump***")
+            print(model.stages[-1].toDebugString)
+            debug("***End Model Dump***")
+
+    del training_data
+    del test_data
+    # Give more driver memory.
+    # use --driver-memory
 
     # Print some output, just because.
     if enable_debug:

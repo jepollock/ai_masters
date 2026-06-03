@@ -63,7 +63,13 @@ The expected output is a pair of CSV files, one with the overall accuracy, the o
 
 For this specific dataset, a DecisionTree is not appropriate solution. It fails to train on the low count imbalanced data and is has low precision for some labels. When detecting attacks, human effort needs to be accounted for. Human cost will be driven by the number of false positives, and high false positive rates (\textless 50\% precision) will rapidly train the human to ignore the model.
 
-Spark is not an appropriate tool to explore model options. It isn't possible to quickly iterate, the algorithmic support isn't there (I had to implement TargetEncoder for multiple class support) and clusters are slower and less capable than current consumer hardware.
+Spark's specific DecisionTree implementation has some design choices
+that work against this problem - specifically maxBins and the treatment
+of port numbers. It doesn't rebalance the buckets based on the value subset presented to each node when calculating splits.
+
+Spark is not an appropriate tool to explore model options. It isn't possible to quickly iterate, the algorithmic support isn't there (I had to implement TargetEncoder for multiple class support) and clusters are slower and less capable than current consumer hardware. The cluster environment assumes local access, for example "yarn logs" returns permission errors. The only way to retrieve logs is via a local browser, which is too slow to work over X11. Forwarding port 8009 doesn't seem to be allowed via entry to the cluster.
+
+Spark was unable to generate 10 models in the driver, even with explicit memory release of each model. Since the Python library is a thin wrapper around the Java implementation, re-implementing in Java may allow the pipeline to release memory references.
 
 I propose a pipeline that, when given a dataset for classification, detects datatypes from the schema, performs appropriate transformations (TargetEncoding, Standardization), and trains many different model types. It then evaluates the entirety of the available models to see which is best for the given dataset. Hyperparameter searching could also be included in the search space.
 
@@ -251,6 +257,8 @@ Standardization broke NMAP\_TCP\_scan, taking it to 0\% precision.
 
 I do not think Standardization is a helpful transformation for this problem, and a decision tree is not a very good model for this dataset and problem. It fails to classify the low frequency attacks. The original paper used an autoencoder.
 
+If the max-depth were increased from 5, the model might be able to separate out the low occurrence attacks. Changing how port numbers are dealt with could also be investigated. Spark's DecisionTree classifier treats columns with more than maxBins values as continuous and buckets them. This will result in buckets with multiple port numbers in them. Since it doesn't re-bucket at each node, this will persist through the tree.
+
 \begin{table}[H]
 	\centering
 	\begin{tabular}{ | l | l | r | r | }
@@ -347,7 +355,9 @@ Several values for K were tested:
 	\item k=80 - 90.8\%
 \end{itemize}
 
-Interestingly, there was a diminishing return as K increased, with a definite fall off as K exceeded 40. This indicates most of the fields are involved in the performance of the model, and that the tail features mislead the DecisionTree. The initial drop in performance indicates that relatively unimportant features are very important for some classes.
+Interestingly, there was a diminishing return as K increased, with a definite fall off as K exceeded 40. This indicates most of the fields are involved in the performance of the model, and that the tail PCA features mislead the DecisionTree. The initial drop in performance indicates that relatively unimportant features are very important for some classes.
+
+This indicates that pair-wise values between features contributes. This would be more obvious if we could 1-hot encode the port numbers, but there are 65k of each. The system can't handle 10 PCA runs, increasing the feature numbers by 3 orders of magnitude likely won't fit.
 
 \begin{table}[H]
 	\centering
