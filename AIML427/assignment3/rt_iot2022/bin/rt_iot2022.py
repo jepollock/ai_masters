@@ -280,8 +280,10 @@ def main():
     # This isn't sufficient, the memory is still being pinned.
     predictions = []
     dump_first = True
+    original_labels = []
     for (training, test) in zip(training_data, test_data):
         model = pipeline.fit(training)
+        original_labels.append(model.stages[0].labels)
         predictions.append([model.transform(training), model.transform(test)])
         if dump_first:
             dump_first = False
@@ -341,8 +343,7 @@ def main():
     count_by_label = defaultdict(int)
     precision_sum_by_label = defaultdict(int)
     recall_sum_by_label = defaultdict(int)
-    for ( model, (_, test_prediction)) in zip(trained_models, predictions):
-        original_labels = model.stages[0].labels
+    for ( original_labels, (_, test_prediction)) in zip(original_labels, predictions):
         debug(original_labels)
         if enable_debug:
             test_prediction.select(LABEL_COLUMN, PREDICTION_COLUMN).show(5)
